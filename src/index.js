@@ -4,8 +4,13 @@ const tmi = require('tmi.js');
 const botconfig = require('../botconfig.json');
 const request = require("request");
 var base64 = require('base-64');
+var express = require('express');
 var SpotifyWebApi = require('spotify-web-api-node');
-var spotifyApi = new SpotifyWebApi();
+var spotifyApi = new SpotifyWebApi({
+    clientId: botconfig.SPOTIFY_CLIENT_ID,
+    clientSecret: botconfig.SPOTIFY_CLIENT_SECRET,
+    redirectUri: botconfig.SPOTIFY_REDIRECT_URI
+});
 
 const client = new tmi.Client({
     options: {
@@ -52,6 +57,7 @@ client.on('message', (channel, userstate, message, self) => {
         if (!comm[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with command !queue`)
 
         // THIS IS CLIENT CREDENTIALS (SUITABLE FOR BASIC LOOKUP / NO USER AUTH)
+        // SEE https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
         // const getToken = (url, callback) => {
         //     const options = {
         //         url: url, //See https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow
@@ -82,62 +88,101 @@ client.on('message', (channel, userstate, message, self) => {
         //     return AT;
         // })
 
-        const getSongURI = (url, accessToken, callback) => {
-            // see https://developer.spotify.com/console/get-search-item/
+        // Example from https://github.com/tombaranowicz/SpotifyPlaylistExport/blob/master/index.js
+        const scopes = ['user-modify-playback-state'];
+        const app = express();
 
-            const songOptions = {
-                url: url,
-                method: "GET",
-                headers: {
-                    'Authorization': 'Bearer ' + accessToken
-                }
-            };
-            request.get(songOptions, (err, res, body) => {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log(`Status: ${res.statusCode}`);
-                console.log(body);
+        app.get('/login', (req, res) => {
 
-                callback(res);
-            });
-        }
-        setTimeout(() => {
-            var songURI = '';
-            console.log(AT)
-            getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, AT, (res) => {
-                songURI = JSON.parse(res.body).tracks.items[0].uri;
-                console.log(songURI)
-                const addToQueue = (url, uri, accessToken) => {
-                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
-                    const idOptions = {
-                        url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
-                        json: true,
-                        headers: {
-                            'Authorization': 'Bearer ' + accessToken
-                        }
-                    };
-                    request.post(idOptions, (err, res, body) => {
-                        if (err) {
-                            return console.log(err);
-                        }
-                        console.log(`Status: ${res.statusCode}`);
-                        console.log(body);
+        })
 
-                    });
-                };
-                setTimeout(() => {
-                    addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI, AT)
-                }, 1000)
-            })
-        }, 1000)
+        // const getToken = (url, callback) => {
+        //     const options = {
+        //         url: url,
+        //         json: true,
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/x-www-form-urlencoded',
+        //             'Authorization': 'Basic ' + base64.encode(botconfig.SPOTIFY_CLIENT_ID + ':' + botconfig.SPOTIFY_CLIENT_SECRET),
+        //         },
+        //         form: {
+        //             'grant_type': 'authorization_code',
+        //             'code': botconfig.SPOTIFY_AUTH_TOKEN,
+        //             'redirect_uri': encodeURI('http://localhost')
+        //         }
+        //     };
+
+        //     request.post(options, (err, res, body) => {
+        //         if (err) {
+        //             return console.log(err);
+        //         }
+        //         console.log(`Status: ${res.statusCode}`);
+        //         console.log(body);
+
+        //         callback(res);
+        //     })
+        // };
+        // var AT = ''; //OAuth App Acces Token (For clip GET request)
+        // getToken(botconfig.SPOTIFY_GET_TOKEN, (res) => {
+        //     //AT = JSON.parse(res.body).access_token;
+        //     //return AT;
+        // })
+
+        // const getSongURI = (url, accessToken, callback) => {
+        //     // see https://developer.spotify.com/console/get-search-item/
+
+        //     const songOptions = {
+        //         url: url,
+        //         method: "GET",
+        //         headers: {
+        //             'Authorization': 'Bearer ' + accessToken
+        //         }
+        //     };
+        //     request.get(songOptions, (err, res, body) => {
+        //         if (err) {
+        //             return console.log(err);
+        //         }
+        //         console.log(`Status: ${res.statusCode}`);
+        //         console.log(body);
+
+        //         callback(res);
+        //     });
+        // }
+        // setTimeout(() => {
+        //     var songURI = '';
+        //     console.log(AT)
+        //     getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, AT, (res) => {
+        //         songURI = JSON.parse(res.body).tracks.items[0].uri;
+        //         console.log(songURI)
+        //         const addToQueue = (url, uri, accessToken) => {
+        //             // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+        //             const idOptions = {
+        //                 url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+        //                 json: true,
+        //                 headers: {
+        //                     'Authorization': 'Bearer ' + accessToken
+        //                 }
+        //             };
+        //             request.post(idOptions, (err, res, body) => {
+        //                 if (err) {
+        //                     return console.log(err);
+        //                 }
+        //                 console.log(`Status: ${res.statusCode}`);
+        //                 console.log(body);
+
+        //             });
+        //         };
+        //         setTimeout(() => {
+        //             addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI, AT)
+        //         }, 1000)
+        //     })
+        // }, 1000)
 
 
     }
 
-
-
 });
+
 
 function moderateTwitchChat(username, message, channel) {
     // check message for any blacklisted words 

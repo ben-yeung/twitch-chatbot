@@ -20,7 +20,11 @@
   "dependencies": {
     "base-64": "^1.0.0",
     "btoa-atob": "^0.1.2",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "querystring": "^0.2.1",
     "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.2",
     "tmi.js": "^1.8.3"
