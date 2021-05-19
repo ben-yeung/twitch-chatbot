@@ -2,6 +2,9 @@ require = require("esm")(module /*, options*/ )
 module.exports = require("./app.js")
 const tmi = require('tmi.js');
 const botconfig = require('../botconfig.json');
+const request = require("request");
+var SpotifyWebApi = require('spotify-web-api-node');
+var spotifyApi = new SpotifyWebApi();
 
 const client = new tmi.Client({
     options: {
@@ -21,6 +24,10 @@ const client = new tmi.Client({
 client.connect().catch(console.error);
 client.on('message', (channel, userstate, message, self) => {
     if (self) return;
+
+    let moderated = moderateTwitchChat(userstate, message, channel);
+    if (moderated) return;
+
     const greetings = ['hi!', 'hey how are you?', 'yo what\'s up', 'heya!', 'hey'];
     const rand_greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
@@ -40,7 +47,26 @@ client.on('message', (channel, userstate, message, self) => {
         }
     }
 
-    moderateTwitchChat(userstate, message, channel);
+    const addToQueue = (url, uri, accessToken, callback) => {
+        // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+        const idOptions = {
+            url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+            headers: {
+                'Client-ID': botconfig.SPOTIFY_CLIENT_ID,
+                'Authorization': 'Bearer ' + accessToken
+            }
+        };
+        request.post(idOptions, (err, res, body) => {
+            if (err) {
+                return console.log(err);
+            }
+            console.log(`Status: ${res.statusCode}`);
+            console.log(JSON.parse(body));
+
+            callback(res);
+        });
+    };
+
 });
 
 function moderateTwitchChat(username, message, channel) {
@@ -56,6 +82,9 @@ function moderateTwitchChat(username, message, channel) {
 
         //delete message if found in blacklist
         client.deletemessage(channel, username.id);
+        return true;
+    } else {
+        return false;
     }
 
 }

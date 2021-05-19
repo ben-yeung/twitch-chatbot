@@ -19,6 +19,8 @@
   "homepage": "https://github.com/ben-yeung/twitch-chatbot#readme",
   "dependencies": {
     "esm": "^3.2.25",
+    "request": "^2.88.2",
+    "spotify-web-api-node": "^5.0.2",
     "tmi.js": "^1.8.3"
   }
 }
