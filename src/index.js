@@ -29,7 +29,67 @@ const client = new tmi.Client({
 });
 client.connect().catch(console.error);
 
-client.on('message', (channel, userstate, message, self) => {
+
+// Example from https://github.com/tombaranowicz/SpotifyPlaylistExport/blob/master/index.js
+const scopes = ['user-modify-playback-state'];
+const app = express();
+var access_token;
+var refresh_token;
+
+app.get('/login', (req, res) => {
+    res.redirect(spotifyApi.createAuthorizeURL(scopes));
+})
+
+app.get('/callback', (req, res) => {
+    const error = req.query.error;
+    const code = req.query.code;
+    const state = req.query.state;
+
+    if (error) {
+        console.error('Callback Error:', error);
+        res.send(`Callback Error: ${error}`);
+        return;
+    }
+
+    spotifyApi
+        .authorizationCodeGrant(code)
+        .then(data => {
+            access_token = data.body['access_token'];
+            refresh_token = data.body['refresh_token'];
+            const expires_in = data.body['expires_in'];
+
+            spotifyApi.setAccessToken(access_token);
+            spotifyApi.setRefreshToken(refresh_token);
+
+            console.log('access_token:', access_token);
+            console.log('refresh_token:', refresh_token);
+
+            console.log(
+                `Sucessfully retreived access token. Expires in ${expires_in} s.`
+            );
+            setInterval(async () => {
+                const data = await spotifyApi.refreshAccessToken();
+                access_token = data.body['access_token'];
+
+                console.log('The access token has been refreshed!');
+                console.log('access_token:', access_token);
+                spotifyApi.setAccessToken(access_token);
+            }, expires_in / 2 * 1000);
+
+        })
+        .catch(error => {
+            console.error('Error getting Tokens:', error);
+            res.send(`Error getting Tokens: ${error}`);
+        });
+})
+
+app.listen(8888, () =>
+    console.log(
+        'HTTP Server up. Now go to http://localhost:8888/login in your browser.'
+    )
+);
+
+client.on('message', async (channel, userstate, message, self) => {
     if (self) return;
 
     let moderated = moderateTwitchChat(userstate, message, channel);
@@ -88,95 +148,61 @@ client.on('message', (channel, userstate, message, self) => {
         //     return AT;
         // })
 
-        // Example from https://github.com/tombaranowicz/SpotifyPlaylistExport/blob/master/index.js
-        const scopes = ['user-modify-playback-state'];
-        const app = express();
+        const data = await spotifyApi.refreshAccessToken();
+        access_token = data.body['access_token'];
 
-        app.get('/login', (req, res) => {
+        console.log('The access token has been refreshed!');
+        console.log('access_token:', access_token);
+        spotifyApi.setAccessToken(access_token);
 
-        })
+        const getSongURI = (url, callback) => {
+            // see https://developer.spotify.com/console/get-search-item/
 
-        // const getToken = (url, callback) => {
-        //     const options = {
-        //         url: url,
-        //         json: true,
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/x-www-form-urlencoded',
-        //             'Authorization': 'Basic ' + base64.encode(botconfig.SPOTIFY_CLIENT_ID + ':' + botconfig.SPOTIFY_CLIENT_SECRET),
-        //         },
-        //         form: {
-        //             'grant_type': 'authorization_code',
-        //             'code': botconfig.SPOTIFY_AUTH_TOKEN,
-        //             'redirect_uri': encodeURI('http://localhost')
-        //         }
-        //     };
+            const songOptions = {
+                url: url,
+                method: "GET",
+                headers: {
+                    'Authorization': 'Bearer ' + access_token
+                }
+            };
+            request.get(songOptions, (err, res, body) => {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log(`Status: ${res.statusCode}`);
+                console.log(body);
 
-        //     request.post(options, (err, res, body) => {
-        //         if (err) {
-        //             return console.log(err);
-        //         }
-        //         console.log(`Status: ${res.statusCode}`);
-        //         console.log(body);
+                callback(res);
+            });
+        }
+        setTimeout(() => {
+            var songURI = '';
+            getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
+                songURI = JSON.parse(res.body).tracks.items[0].uri;
+                console.log(songURI)
+                const addToQueue = (url, uri) => {
+                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+                    const idOptions = {
+                        url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                        json: true,
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token
+                        }
+                    };
+                    request.post(idOptions, (err, res, body) => {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(`Status: ${res.statusCode}`);
+                        //console.log(body);
 
-        //         callback(res);
-        //     })
-        // };
-        // var AT = ''; //OAuth App Acces Token (For clip GET request)
-        // getToken(botconfig.SPOTIFY_GET_TOKEN, (res) => {
-        //     //AT = JSON.parse(res.body).access_token;
-        //     //return AT;
-        // })
-
-        // const getSongURI = (url, accessToken, callback) => {
-        //     // see https://developer.spotify.com/console/get-search-item/
-
-        //     const songOptions = {
-        //         url: url,
-        //         method: "GET",
-        //         headers: {
-        //             'Authorization': 'Bearer ' + accessToken
-        //         }
-        //     };
-        //     request.get(songOptions, (err, res, body) => {
-        //         if (err) {
-        //             return console.log(err);
-        //         }
-        //         console.log(`Status: ${res.statusCode}`);
-        //         console.log(body);
-
-        //         callback(res);
-        //     });
-        // }
-        // setTimeout(() => {
-        //     var songURI = '';
-        //     console.log(AT)
-        //     getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, AT, (res) => {
-        //         songURI = JSON.parse(res.body).tracks.items[0].uri;
-        //         console.log(songURI)
-        //         const addToQueue = (url, uri, accessToken) => {
-        //             // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
-        //             const idOptions = {
-        //                 url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
-        //                 json: true,
-        //                 headers: {
-        //                     'Authorization': 'Bearer ' + accessToken
-        //                 }
-        //             };
-        //             request.post(idOptions, (err, res, body) => {
-        //                 if (err) {
-        //                     return console.log(err);
-        //                 }
-        //                 console.log(`Status: ${res.statusCode}`);
-        //                 console.log(body);
-
-        //             });
-        //         };
-        //         setTimeout(() => {
-        //             addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI, AT)
-        //         }, 1000)
-        //     })
-        // }, 1000)
+                    });
+                };
+                setTimeout(() => {
+                    addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI)
+                }, 1000)
+            })
+        }, 1000)
 
 
     }
