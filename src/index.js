@@ -22,10 +22,22 @@ client.connect().catch(console.error);
 client.on('message', (channel, userstate, message, self) => {
     if (self) return;
     const greetings = ['hi!', 'hey how are you?', 'yo what\'s up', 'heya!', 'hey'];
-    const rand_greeting = greetings[Math.random() * greetings.length];
+    const rand_greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
-    if (message.toLowerCase() === '!hello') {
+    const comm = message.toLowerCase();
+    if (comm === '!hello') {
         client.say(channel, `@${userstate.username}, ${rand_greeting}`);
+    } else if (comm === '!help') {
+        const arr = ['!hello', '!camera', '!sens', '!controls', '!creationmeta', '!coinflip'];
+        const allComms = arr.join(", ");
+        client.say(channel, `Here is a list of active commands: ${allComms}`);
+    } else if (comm === '!flip' || comm === '!coinflip' || comm === '!flipcoin') {
+        const rand = Math.floor(Math.random() * 2);
+        if (rand == 0) {
+            client.say(channel, `@${userstate.username} flips a coin and it's Heads!`)
+        } else {
+            client.say(channel, `@${userstate.username} flips a coin and it's Tails!`)
+        }
     }
 
     moderateTwitchChat(userstate, message, channel);
@@ -33,7 +45,7 @@ client.on('message', (channel, userstate, message, self) => {
 
 function moderateTwitchChat(username, message, channel) {
     // check message for any blacklisted words 
-    if (userstate.username === botconfig.CHANNEL_NAME) return; //ignore broadcaster messages
+    if (username.username === botconfig.CHANNEL_NAME) return; //ignore broadcaster messages
     message = message.toLowerCase();
     let wordFound = false;
     wordFound = botconfig.BLOCKED_WORDS.some(blocked => message.includes(blocked.toLowerCase()));
@@ -43,7 +55,7 @@ function moderateTwitchChat(username, message, channel) {
         client.say(channel, `@${username.username}, sorry! Your message was deleted as it contained a blacklisted word.`);
 
         //delete message if found in blacklist
-        client.deletemessage(channel, userstate.id);
+        client.deletemessage(channel, username.id);
     }
 
 }
