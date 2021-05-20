@@ -18,6 +18,7 @@ Simple chatbot to interact with users in Twitch chats and provide additional com
     - *See this to learn more on the metadata (userstate, roomstate, etc)*
 - [Twitch API Reference](https://dev.twitch.tv/docs/api/reference)
     - *This is for the more in depth channel, analytics, games, etc functions*
+
 **For more information on setting up Spotify API / Application see:**
 - [Web API Quickstart](https://developer.spotify.com/documentation/web-api/quick-start/)
     - *Setting up an application with the Spotify Developer Dashboard*
