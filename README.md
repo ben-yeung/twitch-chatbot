@@ -5,7 +5,7 @@ Simple chatbot to interact with users in Twitch chat and provide additional comm
 - Simple starter greeting command, flip coin command, and some relevant streamer information
 - Some moderation features include automatic message deletion based on blacklist of words
     - Note that API / CLIENT keys and secrets are hidden in a botconfig.json file
-    - This file also includes an array of blacklisted words.
+    - This file also includes an array of blacklisted words (be sure to make your own for moderating)
     - Feel free to also use a .env file and change the respective botconfig references
 
 ##  Spotify API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 🎵
