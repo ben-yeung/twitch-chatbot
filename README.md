@@ -1,6 +1,7 @@
 # twitch-chatbot
 Simple chatbot to interact with users in Twitch chats and provide additional commands
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
+- Simple starter greeting command, flip coin command, and some relevant streamer information
 
 ## Spotify API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node)
 - Using Authorization Code Flow with various scopes to make GET and POST requests
