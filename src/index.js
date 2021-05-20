@@ -103,7 +103,7 @@ client.on('message', async (channel, userstate, message, self) => {
     if (comm[0] === '!hello') {
         client.say(channel, `@${userstate.username}, ${rand_greeting}`);
     } else if (comm[0] === '!help') {
-        const arr = ['!hello', '!camera', '!sens', '!controls', '!creationmeta', '!coinflip'];
+        const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song'];
         const allComms = arr.join(", ");
         client.say(channel, `Here is a list of active commands: ${allComms}`);
     } else if (comm[0] === '!flip' || comm === '!coinflip' || comm === '!flipcoin') {
@@ -113,8 +113,8 @@ client.on('message', async (channel, userstate, message, self) => {
         } else {
             client.say(channel, `@${userstate.username} flips a coin and it's Tails!`)
         }
-    } else if (comm[0] === '!queue') {
-        if (!comm[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with command !queue`)
+    } else if (comm[0] === '!queue' || comm[0] === '!request') {
+        if (!comm[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with this command!`)
 
         // THIS IS CLIENT CREDENTIALS (SUITABLE FOR BASIC LOOKUP / NO USER AUTH)
         // SEE https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
