@@ -177,8 +177,20 @@ client.on('message', async (channel, userstate, message, self) => {
         }
         setTimeout(() => {
             var songURI = '';
+            var artistArr = [];
+            var artist = '';
+            var song = '';
             getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
                 songURI = JSON.parse(res.body).tracks.items[0].uri;
+                const artists = JSON.parse(res.body).tracks.items[0].artists;
+
+                for (var i = 0; i < artists.length; i++) {
+                    artistArr.push(artists[i].name);
+                }
+                artist = artistArr.join(", ");
+                song = JSON.parse(res.body).tracks.items[0].name;
+                console.log(artist)
+                console.log(song)
                 console.log(songURI)
                 const addToQueue = (url, uri) => {
                     // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
@@ -200,11 +212,19 @@ client.on('message', async (channel, userstate, message, self) => {
                 };
                 setTimeout(() => {
                     addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI)
+                    client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`)
                 }, 1000)
             })
         }, 1000)
+    } else if (comm === '!skip') {
+        if (!userstate.mod) return;
 
+        const data = await spotifyApi.refreshAccessToken();
+        access_token = data.body['access_token'];
 
+        console.log('The access token has been refreshed!');
+        console.log('access_token:', access_token);
+        spotifyApi.setAccessToken(access_token);
     }
 
 });
