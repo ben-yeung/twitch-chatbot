@@ -15,7 +15,7 @@ Simple chatbot to interact with users in Twitch chats and provide additional com
 - Maintaining access and refresh tokens to ensure that requests can be made
 - Examples of Client Credentials Flow and Authorization Code Flow
 - Chaining requests and outputting relevant data to Twitch stream chat
-- Note that GET and POST request urls are hidden in a botconfig.json file as some contain private information (streamer name, spotify device id, etc)
+- Note that request urls are hidden in a botconfig.json file as some contain private information
 - Be sure to update or include the relevant url calls accordingly
 
 ##  Debugging 🔎
