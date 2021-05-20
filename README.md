@@ -1,5 +1,5 @@
 #  twitch-chatbot 🤖
-Simple chatbot to interact with users in Twitch chats and provide additional commands
+Simple chatbot to interact with users in Twitch chat and provide additional commands / moderation
 - [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) for compilation and package managing
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
 - Simple starter greeting command, flip coin command, and some relevant streamer information
