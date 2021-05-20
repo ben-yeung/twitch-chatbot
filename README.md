@@ -8,7 +8,7 @@ Simple chatbot to interact with users in Twitch chat and provide additional comm
     - This file also includes an array of blacklisted words (be sure to make your own for moderating)
     - Feel free to also use a .env file and change the respective botconfig references
 
-##  Spotify API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 🎵
+##  Spotify Web API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 🎵
 - Using Authorization Code Flow with various scopes to make GET and POST requests
 - Twitch chat commands to add songs to streamer's spotify queue and skip songs (moderator permission granted)
 - Command to grab song currently playing in real time
