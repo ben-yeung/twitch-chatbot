@@ -1,10 +1,10 @@
-# twitch-chatbot
+# 🤖 twitch-chatbot 
 Simple chatbot to interact with users in Twitch chats and provide additional commands
 - [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) for compilation and package managing
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
 - Simple starter greeting command, flip coin command, and some relevant streamer information
 
-## Spotify API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node)
+## 🎵 Spotify API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 
 - Using Authorization Code Flow with various scopes to make GET and POST requests
 - Twitch chat commands to add songs to streamer's spotify queue and skip songs (moderator permission granted)
 - Command to grab song currently playing in real time
@@ -12,7 +12,7 @@ Simple chatbot to interact with users in Twitch chats and provide additional com
 - Examples of Client Credentials Flow and Authorization Code Flow
 - Chaining requests and outputting relevant data to Twitch stream chat
 
-## Debugging
+## 🔎 Debugging 
 **To get started with initializing a Twitch Chat Bot see:**
 - [Quickstart Overview](https://dev.twitch.tv/docs/irc)
     - *Basic setup and starter code for a Twitch Chat Bot*
