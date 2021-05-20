@@ -216,8 +216,8 @@ client.on('message', async (channel, userstate, message, self) => {
                 }, 1000)
             })
         }, 1000)
-    } else if (comm === '!skip') {
-        if (!userstate.mod) return;
+    } else if (comm[0] === '!skip') {
+        if (!userstate.mod && userstate.username != 'hyperstanced') return;
 
         const data = await spotifyApi.refreshAccessToken();
         access_token = data.body['access_token'];
@@ -225,6 +225,30 @@ client.on('message', async (channel, userstate, message, self) => {
         console.log('The access token has been refreshed!');
         console.log('access_token:', access_token);
         spotifyApi.setAccessToken(access_token);
+
+        const skipCurr = (url) => {
+            // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+            const songOptions = {
+                url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                json: true,
+                headers: {
+                    'Authorization': 'Bearer ' + access_token
+                }
+            };
+            request.post(songOptions, (err, res, body) => {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log(`Status: ${res.statusCode}`);
+                //console.log(body);
+
+            });
+        };
+        setTimeout(() => {
+            skipCurr(botconfig.SPOTIFY_SKIP_LINK)
+            console.log("Current song skipped.")
+            client.say(channel, `@${userstate.username}, skipped current song.`)
+        }, 1000)
     }
 
 });
