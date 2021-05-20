@@ -181,6 +181,7 @@ client.on('message', async (channel, userstate, message, self) => {
             var artist = '';
             var song = '';
             getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
+                if (JSON.parse(res.body).tracks.items.length == 0) return client.say(channel, `@${userstate.username}, could not find a song with that name`);
                 songURI = JSON.parse(res.body).tracks.items[0].uri;
                 const artists = JSON.parse(res.body).tracks.items[0].artists;
 
@@ -217,7 +218,7 @@ client.on('message', async (channel, userstate, message, self) => {
             })
         }, 1000)
     } else if (comm[0] === '!skip') {
-        if (!userstate.mod && userstate.username != 'hyperstanced') return;
+        if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
 
         const data = await spotifyApi.refreshAccessToken();
         access_token = data.body['access_token'];
