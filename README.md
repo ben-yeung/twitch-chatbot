@@ -37,3 +37,10 @@ Simple chat bot to interact with users in Twitch chat and provide moderation
 - [Web API Reference](https://developer.spotify.com/documentation/web-api/reference/)
     - *I highly recommend this reference as there are browser API previews for GET/POST requests and request structure*
 - Most of the calls have their relative Spotify API Doc links above them
+
+## Dependencies 🛠️
+- [request](https://www.npmjs.com/package/request)
+- [express](https://www.npmjs.com/package/express)
+- [spotify-web-api-node](https://www.npmjs.com/package/spotify-web-api-node)
+- [esm](https://www.npmjs.com/package/esm)
+- [base64](https://www.npmjs.com/package/base-64)
