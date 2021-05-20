@@ -10,13 +10,15 @@ Simple chatbot to interact with users in Twitch chat and provide additional comm
 
 ##  Spotify Web API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 🎵
 - Using Authorization Code Flow with various scopes to make GET and POST requests
-- Twitch chat commands to add songs to streamer's spotify queue and skip songs (moderator permission granted)
-- Command to grab song currently playing in real time
-- Maintaining access and refresh tokens to ensure that requests can be made
+- Twitch chat commands to modify playback (moderator permission options)
+    - Command to grab song currently playing in real time
+    - Command to skip current song
+    - Command to add a song to Spotify queue
 - Examples of Client Credentials Flow and Authorization Code Flow
-- Chaining requests and outputting relevant data to Twitch stream chat
+    - Maintaining access and refresh tokens to ensure authorized requests
+    - Chaining requests and outputting relevant data to Twitch stream chat
 - Note that request urls are hidden in a botconfig.json file as some contain private information
-- Be sure to update or include the relevant url calls accordingly
+    - Be sure to update or include the relevant url calls accordingly
 
 ##  Debugging 🔎
 **To get started with initializing a Twitch Chat Bot see:**
