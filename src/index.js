@@ -31,7 +31,7 @@ client.connect().catch(console.error);
 
 
 // Example from https://github.com/tombaranowicz/SpotifyPlaylistExport/blob/master/index.js
-const scopes = ['user-modify-playback-state'];
+const scopes = ['user-modify-playback-state', 'user-read-currently-playing', 'user-read-recently-played'];
 const app = express();
 var access_token;
 var refresh_token;
@@ -61,20 +61,20 @@ app.get('/callback', (req, res) => {
             spotifyApi.setAccessToken(access_token);
             spotifyApi.setRefreshToken(refresh_token);
 
-            console.log('access_token:', access_token);
-            console.log('refresh_token:', refresh_token);
+            // console.log('access_token:', access_token);
+            // console.log('refresh_token:', refresh_token);
 
             console.log(
                 `Sucessfully retreived access token. Expires in ${expires_in} s.`
             );
-            setInterval(async () => {
-                const data = await spotifyApi.refreshAccessToken();
-                access_token = data.body['access_token'];
+            // setInterval(async () => {
+            //     const data = await spotifyApi.refreshAccessToken();
+            //     access_token = data.body['access_token'];
 
-                console.log('The access token has been refreshed!');
-                console.log('access_token:', access_token);
-                spotifyApi.setAccessToken(access_token);
-            }, expires_in / 2 * 1000);
+            //     console.log('The access token has been refreshed!');
+            //     console.log('access_token:', access_token);
+            //     spotifyApi.setAccessToken(access_token);
+            // }, expires_in / 2 * 1000);
 
         })
         .catch(error => {
@@ -152,7 +152,7 @@ client.on('message', async (channel, userstate, message, self) => {
         access_token = data.body['access_token'];
 
         console.log('The access token has been refreshed!');
-        console.log('access_token:', access_token);
+        // console.log('access_token:', access_token);
         spotifyApi.setAccessToken(access_token);
 
         const getSongURI = (url, callback) => {
@@ -223,7 +223,7 @@ client.on('message', async (channel, userstate, message, self) => {
         access_token = data.body['access_token'];
 
         console.log('The access token has been refreshed!');
-        console.log('access_token:', access_token);
+        // console.log('access_token:', access_token);
         spotifyApi.setAccessToken(access_token);
 
         const skipCurr = (url) => {
@@ -248,6 +248,84 @@ client.on('message', async (channel, userstate, message, self) => {
             skipCurr(botconfig.SPOTIFY_SKIP_LINK)
             console.log("Current song skipped.")
             client.say(channel, `@${userstate.username}, skipped current song.`)
+        }, 1000)
+    } else if (comm[0] === '!song' || comm[0] === '!playing') {
+        const data = await spotifyApi.refreshAccessToken();
+        access_token = data.body['access_token'];
+
+        console.log('The access token has been refreshed!');
+        // console.log('access_token:', access_token);
+        spotifyApi.setAccessToken(access_token);
+
+        const getCurr = (url, callback) => {
+            // see https://developer.spotify.com/console/get-user-player/
+            const songOptions = {
+                url: `${url}`,
+                method: "GET",
+                headers: {
+                    'Authorization': 'Bearer ' + access_token
+                }
+            };
+            request.get(songOptions, (err, res, body) => {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log(`Status: ${res.statusCode}`);
+                console.log(body);
+                callback(res);
+            });
+        };
+        setTimeout(() => {
+            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                const currData = JSON.parse(res.body);
+                const currSong = currData.item.name;
+                const currArtist = currData.item.artists[0].name;
+                client.say(channel, `@${userstate.username}, current song is ${currSong} by ${currArtist}`);
+            })
+
+            // client.say(channel, `@${userstate.username}, skipped current song.`)
+        }, 1000)
+    } else if (comm[0] === '!recentlyplayed' || comm[0] === '!recentsongs') {
+        const data = await spotifyApi.refreshAccessToken();
+        access_token = data.body['access_token'];
+
+        console.log('The access token has been refreshed!');
+        // console.log('access_token:', access_token);
+        spotifyApi.setAccessToken(access_token);
+
+        const getRecent = (url, callback) => {
+            // see https://developer.spotify.com/console/get-user-player/
+            const date = Date.now();
+            const songOptions = {
+                url: `${url}?limit=5&before=${date}`,
+                json: true,
+                headers: {
+                    'Authorization': 'Bearer ' + access_token
+                }
+            };
+            request.get(songOptions, (err, res, body) => {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log(`Status: ${res.statusCode}`);
+                //console.log(body);
+                callback(res);
+            });
+        };
+        setTimeout(() => {
+            getRecent(botconfig.SPOTIFY_RECENT_LINK, (res) => {
+                const currData = JSON.parse(res.body);
+                const songData = currData.items;
+                const songsArr = [];
+                console.log(songData[0].track)
+
+                // for (var i = 0; i < songData.length; i++) {
+                //     songsArr.push(songData[i])
+                // }
+
+            })
+
+            // client.say(channel, `@${userstate.username}, skipped current song.`)
         }, 1000)
     }
 
