@@ -3,6 +3,10 @@ Simple chatbot to interact with users in Twitch chats and provide additional com
 - [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) for compilation and package managing
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
 - Simple starter greeting command, flip coin command, and some relevant streamer information
+- Some moderation features include automatic message deletion based on blacklist of words
+    - Note that API / CLIENT keys and secrets are hidden in a botconfig.json file
+    - This file also includes an array of blacklisted words.
+    - Feel free to also use a .env file and change the respective botconfig references
 
 ##  Spotify API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 🎵
 - Using Authorization Code Flow with various scopes to make GET and POST requests
@@ -11,6 +15,8 @@ Simple chatbot to interact with users in Twitch chats and provide additional com
 - Maintaining access and refresh tokens to ensure that requests can be made
 - Examples of Client Credentials Flow and Authorization Code Flow
 - Chaining requests and outputting relevant data to Twitch stream chat
+- Note that GET and POST request urls are hidden in a botconfig.json file as some contain private information (streamer name, spotify device id, etc)
+- Be sure to update or include the relevant url calls accordingly
 
 ##  Debugging 🔎
 **To get started with initializing a Twitch Chat Bot see:**
@@ -28,3 +34,4 @@ Simple chatbot to interact with users in Twitch chats and provide additional com
     - *Some example requests for different Auth Flows based on needs (make sure to read more on scopes)*
 - [Web API Reference](https://developer.spotify.com/documentation/web-api/reference/)
     - *I highly recommend this reference as there are browser API previews for GET/POST requests and request structure*
+- Most of the calls have their relative Spotify API Doc links above them
