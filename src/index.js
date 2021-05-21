@@ -228,29 +228,56 @@ client.on('message', async (channel, userstate, message, self) => {
         // console.log('access_token:', access_token);
         spotifyApi.setAccessToken(access_token);
 
-        const skipCurr = (url) => {
-            // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+        const getCurr = (url, callback) => {
+            // see https://developer.spotify.com/console/get-user-player/
             const songOptions = {
-                url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
-                json: true,
+                url: `${url}`,
+                method: "GET",
                 headers: {
                     'Authorization': 'Bearer ' + access_token
                 }
             };
-            request.post(songOptions, (err, res, body) => {
+            request.get(songOptions, (err, res, body) => {
                 if (err) {
                     return console.log(err);
                 }
                 console.log(`Status: ${res.statusCode}`);
-                //console.log(body);
-
+                console.log(body);
+                callback(res);
             });
         };
         setTimeout(() => {
-            skipCurr(botconfig.SPOTIFY_SKIP_LINK)
-            console.log("Current song skipped.")
-            client.say(channel, `@${userstate.username}, skipped current song.`)
+            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                const currData = JSON.parse(res.body);
+                if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
+
+                const skipCurr = (url) => {
+                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+                    const songOptions = {
+                        url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                        json: true,
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token
+                        }
+                    };
+                    request.post(songOptions, (err, res, body) => {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(`Status: ${res.statusCode}`);
+                        //console.log(body);
+
+                    });
+                };
+                setTimeout(() => {
+                    skipCurr(botconfig.SPOTIFY_SKIP_LINK)
+                    console.log("Current song skipped.")
+                    client.say(channel, `@${userstate.username}, skipped current song.`)
+                }, 1000)
+            })
         }, 1000)
+
+
     } else if (comm === '!song' || comm === '!playing') {
         const data = await spotifyApi.refreshAccessToken();
         access_token = data.body['access_token'];
@@ -280,54 +307,13 @@ client.on('message', async (channel, userstate, message, self) => {
         setTimeout(() => {
             getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
                 const currData = JSON.parse(res.body);
+
+                if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
+
                 const currSong = currData.item.name;
                 const currArtist = currData.item.artists[0].name;
                 client.say(channel, `@${userstate.username}, current song is ${currSong} by ${currArtist}`);
             })
-
-            // client.say(channel, `@${userstate.username}, skipped current song.`)
-        }, 1000)
-    } else if (comm === '!recentlyplayed' || comm === '!recentsongs') {
-        const data = await spotifyApi.refreshAccessToken();
-        access_token = data.body['access_token'];
-
-        console.log('The access token has been refreshed!');
-        // console.log('access_token:', access_token);
-        spotifyApi.setAccessToken(access_token);
-
-        const getRecent = (url, callback) => {
-            // see https://developer.spotify.com/console/get-user-player/
-            const date = Date.now();
-            const songOptions = {
-                url: `${url}?limit=5&before=${date}`,
-                json: true,
-                headers: {
-                    'Authorization': 'Bearer ' + access_token
-                }
-            };
-            request.get(songOptions, (err, res, body) => {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log(`Status: ${res.statusCode}`);
-                //console.log(body);
-                callback(res);
-            });
-        };
-        setTimeout(() => {
-            getRecent(botconfig.SPOTIFY_RECENT_LINK, (res) => {
-                const currData = JSON.parse(res.body);
-                const songData = currData.items;
-                const songsArr = [];
-                console.log(songData[0].track)
-
-                // for (var i = 0; i < songData.length; i++) {
-                //     songsArr.push(songData[i])
-                // }
-
-            })
-
-            // client.say(channel, `@${userstate.username}, skipped current song.`)
         }, 1000)
     }
 
