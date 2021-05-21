@@ -23,7 +23,7 @@ const client = new tmi.Client({
     },
     identity: {
         username: botconfig.BOT_NAME, //bot name
-        password: botconfig.OAUTH_TOKEN //oauth:bot-token (see https://dev.twitch.tv/docs/authentication/getting-tokens-oauth)
+        password: botconfig.OAUTH_TOKEN_BOT //oauth:bot-token (see https://dev.twitch.tv/docs/authentication/getting-tokens-oauth)
     },
     channels: [botconfig.CHANNEL_NAME] //channels to join
 });
@@ -85,7 +85,7 @@ app.get('/callback', (req, res) => {
 
 app.listen(8888, () =>
     console.log(
-        'HTTP Server up. Now go to http://localhost:8888/login in your browser.'
+        'HTTP Server up. Now go to http://localhost:8888/login in your browser.' //add this to spotify dashboard redirect URLs to validate
     )
 );
 
@@ -95,28 +95,29 @@ client.on('message', async (channel, userstate, message, self) => {
     let moderated = moderateTwitchChat(userstate, message, channel);
     if (moderated) return;
 
-    const greetings = ['hi!', 'hey how are you?', 'yo what\'s up', 'heya!', 'hey'];
+    const greetings = ['Hi! How has your day been?', 'hey, how are you?', 'yo what\'s up', 'heya!', 'hey what\'s up?'];
     const rand_greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
-    const comm = message.toLowerCase().split(' ');
+    const args = message.toLowerCase().split(' ');
+    const comm = args[0];
 
-    if (comm[0] === '!hello') {
+    if (comm === '!hello') {
         client.say(channel, `@${userstate.username}, ${rand_greeting}`);
-    } else if (comm[0] === '!help') {
+    } else if (comm === '!help') {
         const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song'];
         const allComms = arr.join(", ");
         client.say(channel, `Here is a list of active commands: ${allComms}`);
-    } else if (comm[0] === '!flip' || comm === '!coinflip' || comm === '!flipcoin') {
+    } else if (comm === '!flip' || comm === '!coinflip' || comm === '!flipcoin') {
         const rand = Math.floor(Math.random() * 2);
         if (rand == 0) {
             client.say(channel, `@${userstate.username} flips a coin and it's Heads!`)
         } else {
             client.say(channel, `@${userstate.username} flips a coin and it's Tails!`)
         }
-    } else if (comm[0] === '!queue' || comm[0] === '!request') {
+    } else if (comm === '!queue' || comm === '!request' || comm === '!sr') {
         if (!comm[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with this command!`)
 
-        // THIS IS CLIENT CREDENTIALS (SUITABLE FOR BASIC LOOKUP / NO USER AUTH)
+        // THIS IS CLIENT CREDENTIALS (SUITABLE FOR BASIC INFO REQUESTS / NO USER AUTH)
         // SEE https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
         // const getToken = (url, callback) => {
         //     const options = {
@@ -180,7 +181,7 @@ client.on('message', async (channel, userstate, message, self) => {
             var artistArr = [];
             var artist = '';
             var song = '';
-            getSongURI(`https://api.spotify.com/v1/search?q=${comm.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
+            getSongURI(`https://api.spotify.com/v1/search?q=${args.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
                 if (JSON.parse(res.body).tracks.items.length == 0) return client.say(channel, `@${userstate.username}, could not find a song with that name`);
                 songURI = JSON.parse(res.body).tracks.items[0].uri;
                 const artists = JSON.parse(res.body).tracks.items[0].artists;
@@ -217,7 +218,7 @@ client.on('message', async (channel, userstate, message, self) => {
                 }, 1000)
             })
         }, 1000)
-    } else if (comm[0] === '!skip') {
+    } else if (comm === '!skip') {
         if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
 
         const data = await spotifyApi.refreshAccessToken();
@@ -250,7 +251,7 @@ client.on('message', async (channel, userstate, message, self) => {
             console.log("Current song skipped.")
             client.say(channel, `@${userstate.username}, skipped current song.`)
         }, 1000)
-    } else if (comm[0] === '!song' || comm[0] === '!playing') {
+    } else if (comm === '!song' || comm === '!playing') {
         const data = await spotifyApi.refreshAccessToken();
         access_token = data.body['access_token'];
 
@@ -286,7 +287,7 @@ client.on('message', async (channel, userstate, message, self) => {
 
             // client.say(channel, `@${userstate.username}, skipped current song.`)
         }, 1000)
-    } else if (comm[0] === '!recentlyplayed' || comm[0] === '!recentsongs') {
+    } else if (comm === '!recentlyplayed' || comm === '!recentsongs') {
         const data = await spotifyApi.refreshAccessToken();
         access_token = data.body['access_token'];
 

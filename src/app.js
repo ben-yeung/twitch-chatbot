@@ -1,1 +1,1 @@
-console.log("Bot started")
+console.log("bot started")
