@@ -61,8 +61,8 @@ app.get('/callback', (req, res) => {
             spotifyApi.setAccessToken(access_token);
             spotifyApi.setRefreshToken(refresh_token);
 
-            // console.log('access_token:', access_token);
-            // console.log('refresh_token:', refresh_token);
+            console.log('access_token:', access_token);
+            console.log('refresh_token:', refresh_token);
 
             console.log(
                 `Sucessfully retreived access token. Expires in ${expires_in} s.`
@@ -83,11 +83,17 @@ app.get('/callback', (req, res) => {
         });
 })
 
+// With http://localhost:8888/login approved in Spotify dashboard, visiting this will generate access and refresh tokens
 app.listen(8888, () =>
     console.log(
         'HTTP Server up. Now go to http://localhost:8888/login in your browser.' //add this to spotify dashboard redirect URLs to validate
     )
 );
+
+// Setting refresh token to refresh access token
+// Since refresh tokens have extended life we don't need to load http://localhost:8888/login everytime given a valid refresh token
+// This will allow spotifyApi.refreshAccessToken() to work when bot goes online (no need to generate with redirect url)
+spotifyApi.setRefreshToken(botconfig.SPOTIFY_REFRESH_TOKEN);
 
 client.on('message', async (channel, userstate, message, self) => {
     if (self) return;
