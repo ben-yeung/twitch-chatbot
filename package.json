@@ -22,6 +22,7 @@
     "btoa-atob": "^0.1.2",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
+    "cron": "^1.8.2",
     "esm": "^3.2.25",
     "express": "^4.17.1",
     "querystring": "^0.2.1",

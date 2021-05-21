@@ -1,8 +1,9 @@
-require = require("esm")(module /*, options*/ )
-module.exports = require("./app.js")
+require = require("esm")(module /*, options*/ );
+module.exports = require("./app.js");
 const tmi = require('tmi.js');
 const botconfig = require('../botconfig.json');
 const request = require("request");
+const cron = require('cron');
 var base64 = require('base-64');
 var express = require('express');
 var SpotifyWebApi = require('spotify-web-api-node');
@@ -95,6 +96,16 @@ app.listen(8888, () =>
 // This will allow spotifyApi.refreshAccessToken() to work when bot goes online (no need to generate with redirect url)
 spotifyApi.setRefreshToken(botconfig.SPOTIFY_REFRESH_TOKEN);
 
+// After setting refresh token => refresh access token at initial bot start
+refreshSpotifyToken();
+
+// CronJob to refresh token at the top of every hour
+let scheduleTokenRefresh = new cron.CronJob('00 59 * * * *', async () => {
+    refreshSpotifyToken();
+    console.log(`CronJob refreshed token at ${new Date().toLocaleTimeString()}`)
+})
+scheduleTokenRefresh.start();
+
 client.on('message', async (channel, userstate, message, self) => {
     if (self) return;
 
@@ -155,12 +166,12 @@ client.on('message', async (channel, userstate, message, self) => {
         //     return AT;
         // })
 
-        const data = await spotifyApi.refreshAccessToken();
-        access_token = data.body['access_token'];
+        // const data = await spotifyApi.refreshAccessToken();
+        // access_token = data.body['access_token'];
 
-        console.log('The access token has been refreshed!');
-        // console.log('access_token:', access_token);
-        spotifyApi.setAccessToken(access_token);
+        // console.log('The access token has been refreshed!');
+        // // console.log('access_token:', access_token);
+        // spotifyApi.setAccessToken(access_token);
 
         const getSongURI = (url, callback) => {
             // see https://developer.spotify.com/console/get-search-item/
@@ -227,12 +238,12 @@ client.on('message', async (channel, userstate, message, self) => {
     } else if (comm === '!skip') {
         if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
 
-        const data = await spotifyApi.refreshAccessToken();
-        access_token = data.body['access_token'];
+        // const data = await spotifyApi.refreshAccessToken();
+        // access_token = data.body['access_token'];
 
-        console.log('The access token has been refreshed!');
-        // console.log('access_token:', access_token);
-        spotifyApi.setAccessToken(access_token);
+        // console.log('The access token has been refreshed!');
+        // // console.log('access_token:', access_token);
+        // spotifyApi.setAccessToken(access_token);
 
         const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
@@ -285,12 +296,12 @@ client.on('message', async (channel, userstate, message, self) => {
 
 
     } else if (comm === '!song' || comm === '!playing') {
-        const data = await spotifyApi.refreshAccessToken();
-        access_token = data.body['access_token'];
+        // const data = await spotifyApi.refreshAccessToken();
+        // access_token = data.body['access_token'];
 
-        console.log('The access token has been refreshed!');
-        // console.log('access_token:', access_token);
-        spotifyApi.setAccessToken(access_token);
+        // console.log('The access token has been refreshed!');
+        // // console.log('access_token:', access_token);
+        // spotifyApi.setAccessToken(access_token);
 
         const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
@@ -344,4 +355,13 @@ function moderateTwitchChat(username, message, channel) {
         return false;
     }
 
+}
+
+async function refreshSpotifyToken() {
+    const data = await spotifyApi.refreshAccessToken();
+    access_token = data.body['access_token'];
+
+    console.log('The access token has been refreshed!');
+    // console.log('access_token:', access_token);
+    spotifyApi.setAccessToken(access_token);
 }
