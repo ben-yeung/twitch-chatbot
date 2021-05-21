@@ -19,6 +19,7 @@ Simple chat bot to interact with users in Twitch chat and provide moderation
     - Chaining requests and outputting relevant data to Twitch stream chat
 - Note that request urls are hidden in a botconfig.json file as some contain private information
     - Be sure to update or include the relevant url calls accordingly
+- Once a refresh token has been generated, schedule access token refreshes with cron
 
 ##  Debugging 🔎
 **To get started with initializing a Twitch Chat Bot see:**
@@ -44,3 +45,4 @@ Simple chat bot to interact with users in Twitch chat and provide moderation
 - [spotify-web-api-node](https://www.npmjs.com/package/spotify-web-api-node)
 - [esm](https://www.npmjs.com/package/esm)
 - [base64](https://www.npmjs.com/package/base-64)
+- [cron](https://www.npmjs.com/package/cron)
