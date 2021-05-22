@@ -282,6 +282,7 @@ client.on('message', async (channel, userstate, message, self) => {
 
 
     } else if (comm === '!prevous' || comm === '!back' || comm === '!prev' || comm === '!rewind') {
+        if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
 
         const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
