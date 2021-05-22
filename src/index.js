@@ -254,65 +254,55 @@ client.on('message', async (channel, userstate, message, self) => {
         };
         setTimeout(() => {
             getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
-                const currData = JSON.parse(res.body);
+                var currData = JSON.parse(res.body);
                 // console.log(currData)
 
                 // If current song's context is null skip to last context or default context uri
                 if (currData.context === null) {
-                    const getCurr = (url, callback) => {
-                        // see https://developer.spotify.com/console/get-user-player/
+
+                    // This plays the previously saved context (after a rewind) with a default context
+                    if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
+                    const playContext = (url) => {
+                        // see https://developer.spotify.com/console/put-play/
+
                         const songOptions = {
                             url: `${url}`,
-                            method: "GET",
+                            method: "PUT",
+                            json: true,
                             headers: {
                                 'Authorization': 'Bearer ' + access_token
+                            },
+                            body: {
+                                context_uri: lastContext //Resume play at last context
                             }
                         };
-                        request.get(songOptions, (err, res, body) => {
+                        request.put(songOptions, (err, res, body) => {
                             if (err) {
                                 return console.log(err);
                             }
                             console.log(`Status: ${res.statusCode}`);
-                            //console.log(body);
-                            callback(res);
+                            console.log(body);
+
                         });
                     };
                     setTimeout(() => {
-                        getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
-                            const currData = JSON.parse(res.body);
-                            if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
+                        playContext(botconfig.SPOTIFY_PLAY_LINK)
+                        setTimeout(() => {
+                            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                                currData = JSON.parse(res.body);
+                                var artistArr = [];
+                                var song = '';
+                                var artists = currData.item.artists;
+                                for (var i = 0; i < artists.length; i++) {
+                                    artistArr.push(artists[i].name);
+                                }
+                                artist = artistArr.join(", ");
+                                song = currData.item.name;
 
-                            // This plays the previously queued song (queue array is LIFO)
-                            const playContext = (url) => {
-                                // see https://developer.spotify.com/console/put-play/
-
-                                const songOptions = {
-                                    url: `${url}`,
-                                    method: "PUT",
-                                    json: true,
-                                    headers: {
-                                        'Authorization': 'Bearer ' + access_token
-                                    },
-                                    body: {
-                                        context_uri: lastContext //Resume play at last context
-                                    }
-                                };
-                                request.put(songOptions, (err, res, body) => {
-                                    if (err) {
-                                        return console.log(err);
-                                    }
-                                    console.log(`Status: ${res.statusCode}`);
-                                    console.log(body);
-
-                                });
-                            };
-                            setTimeout(() => {
-                                playContext(botconfig.SPOTIFY_PLAY_LINK)
-                                client.say(channel, `@${userstate.username}, skipped current song.`);
-
-                            }, 1000)
+                                client.say(channel, `@${userstate.username}, skipped current song. Now playing ${song} by ${artist}`);
+                            })
                         }, 1000)
-                    })
+                    }, 1000)
                 } else {
                     const skipCurr = (url) => {
                         // see https://developer.spotify.com/console/post-next/
@@ -334,8 +324,21 @@ client.on('message', async (channel, userstate, message, self) => {
                     };
                     setTimeout(() => {
                         skipCurr(botconfig.SPOTIFY_SKIP_LINK)
-                        console.log("Current song skipped.")
-                        client.say(channel, `@${userstate.username}, skipped current song.`)
+                        setTimeout(() => {
+                            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                                currData = JSON.parse(res.body);
+                                var artistArr = [];
+                                var song = '';
+                                var artists = currData.item.artists;
+                                for (var i = 0; i < artists.length; i++) {
+                                    artistArr.push(artists[i].name);
+                                }
+                                artist = artistArr.join(", ");
+                                song = currData.item.name;
+
+                                client.say(channel, `@${userstate.username}, skipped current song. Now playing ${song} by ${artist}`);
+                            })
+                        }, 1000)
                     }, 1000)
                 }
             })
@@ -344,6 +347,28 @@ client.on('message', async (channel, userstate, message, self) => {
 
     } else if (comm === '!prevous' || comm === '!back' || comm === '!prev' || comm === '!rewind') {
         if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
+
+        let responses = ["put it in reverse terry!", "rewinding.", "going back!", "Great Scott!", "I feel like I've been here before."];
+        let chosenOne = responses[Math.floor(Math.random() * responses.length)];
+
+        const getCurr = (url, callback) => {
+            // see https://developer.spotify.com/console/get-user-player/
+            const songOptions = {
+                url: `${url}`,
+                method: "GET",
+                headers: {
+                    'Authorization': 'Bearer ' + access_token
+                }
+            };
+            request.get(songOptions, (err, res, body) => {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log(`Status: ${res.statusCode}`);
+                //console.log(body);
+                callback(res);
+            });
+        };
 
         // if songs in queue history play last queued, else go back one song in playback
         if (queue.length == 0) {
@@ -367,7 +392,21 @@ client.on('message', async (channel, userstate, message, self) => {
                         client.say(channel, `@${userstate.username}, queue history empty and current song is start of playback.`)
                     } else {
                         console.log("Going to previous song")
-                        client.say(channel, `@${userstate.username}, playing previous song.`)
+                        setTimeout(() => {
+                            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                                currData = JSON.parse(res.body);
+                                var artistArr = [];
+                                var song = '';
+                                var artists = currData.item.artists;
+                                for (var i = 0; i < artists.length; i++) {
+                                    artistArr.push(artists[i].name);
+                                }
+                                artist = artistArr.join(", ");
+                                song = currData.item.name;
+
+                                client.say(channel, `@${userstate.username}, ${chosenOne} Now playing ${song} by ${artist}`);
+                            })
+                        }, 1000)
                     }
                 });
             };
@@ -375,27 +414,9 @@ client.on('message', async (channel, userstate, message, self) => {
                 playPrev(botconfig.SPOTIFY_PREV_LINK)
             }, 1000)
         } else {
-            const getCurr = (url, callback) => {
-                // see https://developer.spotify.com/console/get-user-player/
-                const songOptions = {
-                    url: `${url}`,
-                    method: "GET",
-                    headers: {
-                        'Authorization': 'Bearer ' + access_token
-                    }
-                };
-                request.get(songOptions, (err, res, body) => {
-                    if (err) {
-                        return console.log(err);
-                    }
-                    console.log(`Status: ${res.statusCode}`);
-                    //console.log(body);
-                    callback(res);
-                });
-            };
             setTimeout(() => {
                 getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
-                    const currData = JSON.parse(res.body);
+                    var currData = JSON.parse(res.body);
                     lastContext = currData.context;
                     if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
                     else lastContext = currData.context.uri;
@@ -426,7 +447,21 @@ client.on('message', async (channel, userstate, message, self) => {
                     };
                     setTimeout(() => {
                         playPrev(botconfig.SPOTIFY_PLAY_LINK)
-                        client.say(channel, `@${userstate.username}, playing last queued song.`);
+                        setTimeout(() => {
+                            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                                currData = JSON.parse(res.body);
+                                var artistArr = [];
+                                var song = '';
+                                var artists = currData.item.artists;
+                                for (var i = 0; i < artists.length; i++) {
+                                    artistArr.push(artists[i].name);
+                                }
+                                artist = artistArr.join(", ");
+                                song = currData.item.name;
+
+                                client.say(channel, `@${userstate.username}, ${chosenOne} Now playing ${song} by ${artist}`);
+                            })
+                        }, 1000)
 
                     }, 1000)
                 }, 1000)
@@ -455,7 +490,7 @@ client.on('message', async (channel, userstate, message, self) => {
         };
         setTimeout(() => {
             getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
-                const currData = JSON.parse(res.body);
+                var currData = JSON.parse(res.body);
 
                 if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
