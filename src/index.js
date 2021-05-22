@@ -414,6 +414,9 @@ client.on('message', async (channel, userstate, message, self) => {
                 playPrev(botconfig.SPOTIFY_PREV_LINK)
             }, 1000)
         } else {
+
+            var duration; // Used for when no context song is finished (move back to last context automatically)
+            var poppedSong = queue.pop();
             setTimeout(() => {
                 getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
                     var currData = JSON.parse(res.body);
@@ -433,7 +436,7 @@ client.on('message', async (channel, userstate, message, self) => {
                                 'Authorization': 'Bearer ' + access_token
                             },
                             body: {
-                                uris: [queue.pop()] //get last queued song
+                                uris: [poppedSong] //get last queued song
                             }
                         };
                         request.put(songOptions, (err, res, body) => {
@@ -445,6 +448,7 @@ client.on('message', async (channel, userstate, message, self) => {
 
                         });
                     };
+
                     setTimeout(() => {
                         playPrev(botconfig.SPOTIFY_PLAY_LINK)
                         setTimeout(() => {
@@ -458,11 +462,53 @@ client.on('message', async (channel, userstate, message, self) => {
                                 }
                                 artist = artistArr.join(", ");
                                 song = currData.item.name;
+                                duration = currData.item.duration_ms;
 
                                 client.say(channel, `@${userstate.username}, ${chosenOne} Now playing ${song} by ${artist}`);
+                                console.log(`duration: ${duration}`)
+                                // logic for when song ends (move to last context)
+                                setTimeout(() => {
+                                    getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                                        currData = JSON.parse(res.body);
+
+                                        // if curr song is not the previously queued song, then continue as normal
+                                        // else handle playback ensure transition from null context to last context
+                                        if (currData.item.uri != poppedSong) return console.log("Nothing to do here.");
+                                        else {
+                                            // This plays the previously saved context (after a rewind) with a default context
+                                            if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
+                                            console.log("Restoring last context.")
+                                            const playContext = (url) => {
+                                                // see https://developer.spotify.com/console/put-play/
+
+                                                const songOptions = {
+                                                    url: `${url}`,
+                                                    method: "PUT",
+                                                    json: true,
+                                                    headers: {
+                                                        'Authorization': 'Bearer ' + access_token
+                                                    },
+                                                    body: {
+                                                        context_uri: lastContext //Resume play at last context
+                                                    }
+                                                };
+                                                request.put(songOptions, (err, res, body) => {
+                                                    if (err) {
+                                                        return console.log(err);
+                                                    }
+                                                    console.log(`Status: ${res.statusCode}`);
+                                                    console.log(body);
+
+                                                });
+                                            };
+                                            setTimeout(() => {
+                                                playContext(botconfig.SPOTIFY_PLAY_LINK)
+                                            }, 1000)
+                                        }
+                                    })
+                                }, duration - 1000)
                             })
                         }, 1000)
-
                     }, 1000)
                 }, 1000)
             })
