@@ -307,28 +307,31 @@ client.on('message', async (channel, userstate, message, self) => {
                 const currData = JSON.parse(res.body);
                 if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
-                const getPrev = (url) => {
+                const getPrevList = (url, callback) => {
                     // see https://developer.spotify.com/console/post-previous/
+                    const timestamp = Date.now()
                     const songOptions = {
-                        url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                        url: `${url}?limit=5&before=${timestamp}`,
+                        method: "GET",
                         json: true,
                         headers: {
                             'Authorization': 'Bearer ' + access_token
                         }
                     };
-                    request.post(songOptions, (err, res, body) => {
+                    request.get(songOptions, (err, res, body) => {
                         if (err) {
                             return console.log(err);
                         }
                         console.log(`Status: ${res.statusCode}`);
-                        //console.log(body);
+                        console.log(body);
 
                     });
                 };
                 setTimeout(() => {
-                    getPrev(botconfig.SPOTIFY_PREV_LINK)
-                    console.log("Moved to previous track")
-                    client.say(channel, `@${userstate.username}, rewinding playback.`)
+                    getPrevList(botconfig.SPOTIFY_RECENT_LINK)
+
+                    // console.log("Moved to previous track")
+                    // client.say(channel, `@${userstate.username}, rewinding playback.`)
                 }, 1000)
             })
         }, 1000)
