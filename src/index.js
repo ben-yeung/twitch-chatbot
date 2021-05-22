@@ -281,9 +281,9 @@ client.on('message', async (channel, userstate, message, self) => {
         }, 1000)
 
 
-    } else if (comm === '!prevous' || comm === '!back' || comm === '!prev') {
+    } else if (comm === '!prevous' || comm === '!back' || comm === '!prev' || comm === '!rewind') {
 
-        const getPrev = (url, callback) => {
+        const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
             const songOptions = {
                 url: `${url}`,
@@ -304,12 +304,31 @@ client.on('message', async (channel, userstate, message, self) => {
         setTimeout(() => {
             getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
                 const currData = JSON.parse(res.body);
-
                 if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
-                const currSong = currData.item.name;
-                const currArtist = currData.item.artists[0].name;
-                client.say(channel, `@${userstate.username}, current song is ${currSong} by ${currArtist}`);
+                const getPrev = (url) => {
+                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+                    const songOptions = {
+                        url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                        json: true,
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token
+                        }
+                    };
+                    request.post(songOptions, (err, res, body) => {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(`Status: ${res.statusCode}`);
+                        //console.log(body);
+
+                    });
+                };
+                setTimeout(() => {
+                    getPrev(botconfig.SPOTIFY_PREV_LINK)
+                    console.log("Moved to previous track")
+                    client.say(channel, `@${userstate.username}, rewinding playback.`)
+                }, 1000)
             })
         }, 1000)
 
