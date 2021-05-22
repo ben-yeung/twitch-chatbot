@@ -307,7 +307,6 @@ client.on('message', async (channel, userstate, message, self) => {
                     return console.log(err);
                 }
                 console.log(`Status: ${res.statusCode}`);
-                console.log(body);
 
             });
         };
