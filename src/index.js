@@ -37,7 +37,8 @@ const app = express();
 var access_token;
 var refresh_token;
 var queue = [];
-var lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT; // This is used for fallback when context is null
+var lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT; // This is used for fallback when context is null, else it would be last context uri
+var lastSongURI = '';
 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
@@ -344,7 +345,7 @@ client.on('message', async (channel, userstate, message, self) => {
 
     } else if (comm === '!prevous' || comm === '!back' || comm === '!prev' || comm === '!rewind') {
         if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
-        if (queue.length == 0) return client.say(channel, `@${userstate.username}, nothing currently in queue history.`);
+        // if (queue.length == 0) return client.say(channel, `@${userstate.username}, nothing currently in queue history.`);
 
         const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
