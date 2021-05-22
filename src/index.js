@@ -38,7 +38,6 @@ var access_token;
 var refresh_token;
 var queue = [];
 var lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT; // This is used for fallback when context is null, else it would be last context uri
-var lastSongURI = '';
 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
@@ -345,67 +344,96 @@ client.on('message', async (channel, userstate, message, self) => {
 
     } else if (comm === '!prevous' || comm === '!back' || comm === '!prev' || comm === '!rewind') {
         if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
-        // if (queue.length == 0) return client.say(channel, `@${userstate.username}, nothing currently in queue history.`);
 
-        const getCurr = (url, callback) => {
-            // see https://developer.spotify.com/console/get-user-player/
-            const songOptions = {
-                url: `${url}`,
-                method: "GET",
-                headers: {
-                    'Authorization': 'Bearer ' + access_token
-                }
-            };
-            request.get(songOptions, (err, res, body) => {
-                if (err) {
-                    return console.log(err);
-                }
-                console.log(`Status: ${res.statusCode}`);
-                //console.log(body);
-                callback(res);
-            });
-        };
-        setTimeout(() => {
-            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
-                const currData = JSON.parse(res.body);
-                lastContext = currData.context;
-                if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
-                else lastContext = currData.context.uri;
-
-                // This plays the previously queued song (queue array is LIFO)
-                const playPrev = (url) => {
-                    // see https://developer.spotify.com/console/put-play/
-
-                    const songOptions = {
-                        url: `${url}`,
-                        method: "PUT",
-                        json: true,
-                        headers: {
-                            'Authorization': 'Bearer ' + access_token
-                        },
-                        body: {
-                            uris: [queue.pop()] //get last queued song
-                        }
-                    };
-                    request.put(songOptions, (err, res, body) => {
-                        if (err) {
-                            return console.log(err);
-                        }
-                        console.log(`Status: ${res.statusCode}`);
-                        console.log(body);
-
-                    });
+        // if songs in queue history play last queued, else go back one song in playback
+        if (queue.length == 0) {
+            const playPrev = (url) => {
+                // see https://developer.spotify.com/console/post-previous/
+                const songOptions = {
+                    url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                    json: true,
+                    headers: {
+                        'Authorization': 'Bearer ' + access_token
+                    }
                 };
-                setTimeout(() => {
-                    playPrev(botconfig.SPOTIFY_PLAY_LINK)
-                    client.say(channel, `@${userstate.username}, playing last queued song.`);
-
-                }, 1000)
+                request.post(songOptions, (err, res, body) => {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log(`Status: ${res.statusCode}`);
+                    console.log(body);
+                    if (res.statusCode != 204) {
+                        console.log("Error no previous song.")
+                        client.say(channel, `@${userstate.username}, queue history empty and current song is start of playback.`)
+                    } else {
+                        console.log("Going to previous song")
+                        client.say(channel, `@${userstate.username}, playing previous song.`)
+                    }
+                });
+            };
+            setTimeout(() => {
+                playPrev(botconfig.SPOTIFY_PREV_LINK)
             }, 1000)
-        })
+        } else {
+            const getCurr = (url, callback) => {
+                // see https://developer.spotify.com/console/get-user-player/
+                const songOptions = {
+                    url: `${url}`,
+                    method: "GET",
+                    headers: {
+                        'Authorization': 'Bearer ' + access_token
+                    }
+                };
+                request.get(songOptions, (err, res, body) => {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log(`Status: ${res.statusCode}`);
+                    //console.log(body);
+                    callback(res);
+                });
+            };
+            setTimeout(() => {
+                getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                    const currData = JSON.parse(res.body);
+                    lastContext = currData.context;
+                    if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
+                    else lastContext = currData.context.uri;
+
+                    // This plays the previously queued song (queue array is LIFO)
+                    const playPrev = (url) => {
+                        // see https://developer.spotify.com/console/put-play/
+
+                        const songOptions = {
+                            url: `${url}`,
+                            method: "PUT",
+                            json: true,
+                            headers: {
+                                'Authorization': 'Bearer ' + access_token
+                            },
+                            body: {
+                                uris: [queue.pop()] //get last queued song
+                            }
+                        };
+                        request.put(songOptions, (err, res, body) => {
+                            if (err) {
+                                return console.log(err);
+                            }
+                            console.log(`Status: ${res.statusCode}`);
+                            console.log(body);
+
+                        });
+                    };
+                    setTimeout(() => {
+                        playPrev(botconfig.SPOTIFY_PLAY_LINK)
+                        client.say(channel, `@${userstate.username}, playing last queued song.`);
+
+                    }, 1000)
+                }, 1000)
+            })
+        }
 
     } else if (comm === '!song' || comm === '!playing') {
-
 
         const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
