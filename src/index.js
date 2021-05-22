@@ -255,7 +255,7 @@ client.on('message', async (channel, userstate, message, self) => {
                 if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
                 const skipCurr = (url) => {
-                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+                    // see https://developer.spotify.com/console/post-next/
                     const songOptions = {
                         url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
                         json: true,
@@ -308,7 +308,7 @@ client.on('message', async (channel, userstate, message, self) => {
                 if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
                 const getPrev = (url) => {
-                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+                    // see https://developer.spotify.com/console/post-previous/
                     const songOptions = {
                         url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
                         json: true,
