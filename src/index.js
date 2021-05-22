@@ -232,7 +232,7 @@ client.on('message', async (channel, userstate, message, self) => {
             })
         }, 1000)
     } else if (comm === '!skip') {
-        if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
+        if (!userstate.mod && userstate.username != botconfig.CHANNEL_NAME) return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
 
         const getCurr = (url, callback) => {
             // see https://developer.spotify.com/console/get-user-player/
@@ -346,7 +346,7 @@ client.on('message', async (channel, userstate, message, self) => {
 
 
     } else if (comm === '!prevous' || comm === '!back' || comm === '!prev' || comm === '!rewind') {
-        if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
+        if (!userstate.mod && userstate.username != botconfig.CHANNEL_NAME) return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
 
         let responses = ["put it in reverse terry!", "rewinding.", "going back!", "Great Scott!", "I feel like I've been here before."];
         let chosenOne = responses[Math.floor(Math.random() * responses.length)];
@@ -544,6 +544,39 @@ client.on('message', async (channel, userstate, message, self) => {
                 const currArtist = currData.item.artists[0].name;
                 client.say(channel, `@${userstate.username}, current song is ${currSong} by ${currArtist}`);
             })
+        }, 1000)
+    } else if (comm === '!outro') {
+
+        if (userstate.username != botconfig.CHANNEL_NAME) return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
+
+        // This command is only usable by streamer
+        // Thank viewers with chat msg and play a given outro song
+        const playOutro = (url) => {
+            // see https://developer.spotify.com/console/put-play/
+
+            const songOptions = {
+                url: `${url}`,
+                method: "PUT",
+                json: true,
+                headers: {
+                    'Authorization': 'Bearer ' + access_token
+                },
+                body: {
+                    uris: [botconfig.SPOTIFY_OUTRO_SONG_URI] // Play outro song
+                }
+            };
+            request.put(songOptions, (err, res, body) => {
+                if (err) {
+                    return console.log(err);
+                }
+                console.log(`Status: ${res.statusCode}`);
+                console.log(body);
+
+            });
+        };
+        setTimeout(() => {
+            playOutro(botconfig.SPOTIFY_PLAY_LINK);
+            client.say(channel, `Thanks for coming out to the stream! Hope to see you again soon! Follows are appreciated as we are on the road to affiliate!`)
         }, 1000)
     }
 
