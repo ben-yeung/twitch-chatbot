@@ -312,6 +312,7 @@ client.on('message', async (channel, userstate, message, self) => {
         };
         setTimeout(() => {
             playPrev(botconfig.SPOTIFY_PLAY_LINK)
+            client.say(channel, `@${userstate.username}, playing last queued song.`);
         }, 1000)
 
     } else if (comm === '!song' || comm === '!playing') {
