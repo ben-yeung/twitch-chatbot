@@ -37,6 +37,7 @@ const app = express();
 var access_token;
 var refresh_token;
 var queue = [];
+var lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT; // This is used for fallback when context is null
 
 app.get('/login', (req, res) => {
     res.redirect(spotifyApi.createAuthorizeURL(scopes));
@@ -133,7 +134,7 @@ client.on('message', async (channel, userstate, message, self) => {
             client.say(channel, `@${userstate.username} flips a coin and it's Tails!`)
         }
     } else if (comm === '!queue' || comm === '!request' || comm === '!sr') {
-        if (!comm[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with this command!`)
+        if (!args[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with this command!`)
 
         // THIS IS CLIENT CREDENTIALS (SUITABLE FOR BASIC INFO REQUESTS / NO USER AUTH)
         // SEE https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
@@ -254,31 +255,89 @@ client.on('message', async (channel, userstate, message, self) => {
         setTimeout(() => {
             getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
                 const currData = JSON.parse(res.body);
-                if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
+                // console.log(currData)
 
-                const skipCurr = (url) => {
-                    // see https://developer.spotify.com/console/post-next/
-                    const songOptions = {
-                        url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
-                        json: true,
-                        headers: {
-                            'Authorization': 'Bearer ' + access_token
-                        }
+                // If current song's context is null skip to last context or default context uri
+                if (currData.context === null) {
+                    const getCurr = (url, callback) => {
+                        // see https://developer.spotify.com/console/get-user-player/
+                        const songOptions = {
+                            url: `${url}`,
+                            method: "GET",
+                            headers: {
+                                'Authorization': 'Bearer ' + access_token
+                            }
+                        };
+                        request.get(songOptions, (err, res, body) => {
+                            if (err) {
+                                return console.log(err);
+                            }
+                            console.log(`Status: ${res.statusCode}`);
+                            //console.log(body);
+                            callback(res);
+                        });
                     };
-                    request.post(songOptions, (err, res, body) => {
-                        if (err) {
-                            return console.log(err);
-                        }
-                        console.log(`Status: ${res.statusCode}`);
-                        //console.log(body);
+                    setTimeout(() => {
+                        getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                            const currData = JSON.parse(res.body);
+                            if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
 
-                    });
-                };
-                setTimeout(() => {
-                    skipCurr(botconfig.SPOTIFY_SKIP_LINK)
-                    console.log("Current song skipped.")
-                    client.say(channel, `@${userstate.username}, skipped current song.`)
-                }, 1000)
+                            // This plays the previously queued song (queue array is LIFO)
+                            const playContext = (url) => {
+                                // see https://developer.spotify.com/console/put-play/
+
+                                const songOptions = {
+                                    url: `${url}`,
+                                    method: "PUT",
+                                    json: true,
+                                    headers: {
+                                        'Authorization': 'Bearer ' + access_token
+                                    },
+                                    body: {
+                                        context_uri: lastContext //Resume play at last context
+                                    }
+                                };
+                                request.put(songOptions, (err, res, body) => {
+                                    if (err) {
+                                        return console.log(err);
+                                    }
+                                    console.log(`Status: ${res.statusCode}`);
+                                    console.log(body);
+
+                                });
+                            };
+                            setTimeout(() => {
+                                playContext(botconfig.SPOTIFY_PLAY_LINK)
+                                client.say(channel, `@${userstate.username}, skipped current song.`);
+
+                            }, 1000)
+                        }, 1000)
+                    })
+                } else {
+                    const skipCurr = (url) => {
+                        // see https://developer.spotify.com/console/post-next/
+                        const songOptions = {
+                            url: `${url}?device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                            json: true,
+                            headers: {
+                                'Authorization': 'Bearer ' + access_token
+                            }
+                        };
+                        request.post(songOptions, (err, res, body) => {
+                            if (err) {
+                                return console.log(err);
+                            }
+                            console.log(`Status: ${res.statusCode}`);
+                            //console.log(body);
+
+                        });
+                    };
+                    setTimeout(() => {
+                        skipCurr(botconfig.SPOTIFY_SKIP_LINK)
+                        console.log("Current song skipped.")
+                        client.say(channel, `@${userstate.username}, skipped current song.`)
+                    }, 1000)
+                }
             })
         }, 1000)
 
@@ -287,33 +346,62 @@ client.on('message', async (channel, userstate, message, self) => {
         if (!userstate.mod && userstate.username != 'hyperstanced') return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
         if (queue.length == 0) return client.say(channel, `@${userstate.username}, nothing currently in queue history.`);
 
-        // This plays the previously queued song (queue array is LIFO)
-        const playPrev = (url) => {
-            // see https://developer.spotify.com/console/put-play/
-
+        const getCurr = (url, callback) => {
+            // see https://developer.spotify.com/console/get-user-player/
             const songOptions = {
                 url: `${url}`,
-                method: "PUT",
-                json: true,
+                method: "GET",
                 headers: {
                     'Authorization': 'Bearer ' + access_token
-                },
-                body: {
-                    uris: [queue.pop()]
                 }
             };
-            request.put(songOptions, (err, res, body) => {
+            request.get(songOptions, (err, res, body) => {
                 if (err) {
                     return console.log(err);
                 }
                 console.log(`Status: ${res.statusCode}`);
-
+                //console.log(body);
+                callback(res);
             });
         };
         setTimeout(() => {
-            playPrev(botconfig.SPOTIFY_PLAY_LINK)
-            client.say(channel, `@${userstate.username}, playing last queued song.`);
-        }, 1000)
+            getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                const currData = JSON.parse(res.body);
+                lastContext = currData.context;
+                if (lastContext === null) lastContext = botconfig.SPOTIFY_DEFAULT_CONTEXT;
+                else lastContext = currData.context.uri;
+
+                // This plays the previously queued song (queue array is LIFO)
+                const playPrev = (url) => {
+                    // see https://developer.spotify.com/console/put-play/
+
+                    const songOptions = {
+                        url: `${url}`,
+                        method: "PUT",
+                        json: true,
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token
+                        },
+                        body: {
+                            uris: [queue.pop()] //get last queued song
+                        }
+                    };
+                    request.put(songOptions, (err, res, body) => {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(`Status: ${res.statusCode}`);
+                        console.log(body);
+
+                    });
+                };
+                setTimeout(() => {
+                    playPrev(botconfig.SPOTIFY_PLAY_LINK)
+                    client.say(channel, `@${userstate.username}, playing last queued song.`);
+
+                }, 1000)
+            }, 1000)
+        })
 
     } else if (comm === '!song' || comm === '!playing') {
 
