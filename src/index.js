@@ -108,6 +108,72 @@ let scheduleTokenRefresh = new cron.CronJob('00 59 * * * *', async () => {
 })
 scheduleTokenRefresh.start();
 
+// This is CLIENT CREDENTIALS FLOW FOR TWITCH 
+// See https://dev.twitch.tv/docs/authentication#types-of-tokens for more info on Twitch OAuth
+let twitchScopes = []
+const getToken = (url, callback) => {
+    //See https://dev.twitch.tv/docs/authentication/getting-tokens-oauth#oauth-client-credentials-flow
+    const options = {
+        url: url,
+        method: 'POST',
+        json: true,
+        body: {
+            'client_id': botconfig.TWITCH_CLIENT_ID,
+            'client_secret': botconfig.TWITCH_CLIENT_SECRET,
+            'grant_type': 'client_credentials'
+        }
+    };
+
+    request.post(options, (err, res, body) => {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(`Status: ${res.statusCode}`);
+        console.log(body);
+
+        callback(res);
+    })
+};
+var twitchAT = ''; //OAuth App Access Token
+getToken(botconfig.TWITCH_GET_TOKEN, (res) => {
+    twitchAT = res.body.access_token;
+    return twitchAT;
+})
+
+// Make a call to subscribe to follow EventSub WIP
+const getFollowSubscription = (url, callback) => {
+    //See https://dev.twitch.tv/docs/eventsub#create-a-subscription
+    const options = {
+        url: url,
+        method: 'POST',
+        json: true,
+        headers: {
+            'Client-ID': botconfig.TWITCH_CLIENT_ID,
+            'Authorization': 'Bearer ' + twitchAT
+        },
+        body: {
+            'type': "channel.follow",
+            'version': "1",
+            'condition': {
+                'broadcaster_user_id': botconfig.TWITCH_BROADCASTER_ID // See https://dev.twitch.tv/docs/api/reference#get-users
+            },
+            'transport': {
+
+            }
+        }
+    };
+
+    request.post(options, (err, res, body) => {
+        if (err) {
+            return console.log(err);
+        }
+        console.log(`Status: ${res.statusCode}`);
+        console.log(body);
+
+        callback(res);
+    })
+};
+
 client.on('message', async (channel, userstate, message, self) => {
     if (self) return;
 
@@ -136,7 +202,7 @@ client.on('message', async (channel, userstate, message, self) => {
     } else if (comm === '!queue' || comm === '!request' || comm === '!sr') {
         if (!args[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with this command!`)
 
-        // THIS IS CLIENT CREDENTIALS (SUITABLE FOR BASIC INFO REQUESTS / NO USER AUTH)
+        // THIS IS CLIENT CREDENTIALS FLOW FOR SPOTIFY (SUITABLE FOR BASIC INFO REQUESTS / NO USER AUTH)
         // SEE https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
         // const getToken = (url, callback) => {
         //     const options = {
@@ -562,7 +628,7 @@ client.on('message', async (channel, userstate, message, self) => {
                     'Authorization': 'Bearer ' + access_token
                 },
                 body: {
-                    uris: [botconfig.SPOTIFY_OUTRO_SONG_URI] // Play outro song
+                    uris: [botconfig.SPOTIFY_OUTRO_SONG_URI] // Outro song URI
                 }
             };
             request.put(songOptions, (err, res, body) => {
@@ -576,6 +642,7 @@ client.on('message', async (channel, userstate, message, self) => {
         };
         setTimeout(() => {
             playOutro(botconfig.SPOTIFY_PLAY_LINK);
+            // Customize this outro message
             client.say(channel, `Thanks for coming out to the stream! Hope to see you again soon! Follows are appreciated as we are on the road to affiliate!`)
         }, 1000)
     }
