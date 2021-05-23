@@ -199,7 +199,7 @@ client.on('message', async (channel, userstate, message, self) => {
         if (comm === '!hello') {
             client.say(channel, `@${userstate.username}, ${rand_greeting}`);
         } else if (comm === '!help') {
-            const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song'];
+            const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song', '!rank'];
             const allComms = arr.join(", ");
             client.say(channel, `Here is a list of active commands: ${allComms}`);
         } else if (comm === '!flip' || comm === '!coinflip' || comm === '!flipcoin') {
@@ -658,6 +658,30 @@ client.on('message', async (channel, userstate, message, self) => {
                 // Customize this outro message
                 client.say(channel, `Thanks for coming out to the stream! Hope to see you again soon! Follows are appreciated as we are on the road to affiliate!`)
             }, 1000)
+        } else if (comm === '!rank') {
+            // Gets Rocket League ranked data
+            const getRank = (url, callback) => {
+                // see http://api.yannismate.de/rank.html
+                const rankOptions = {
+                    url: `${url}`,
+                    method: "GET"
+                };
+                request.get(rankOptions, (err, res, body) => {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log(`getRankStatus: ${res.statusCode}`);
+                    //console.log(body);
+                    callback(res);
+
+                });
+            };
+            setTimeout(() => {
+                getRank(botconfig.ROCKET_LEAGUE_RANK, (res) => {
+                    console.log(res.body);
+                    client.say(channel, `@${userstate.username}, ${res.body}`);
+                })
+            })
         }
 
     }
