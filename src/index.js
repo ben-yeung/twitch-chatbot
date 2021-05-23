@@ -129,7 +129,7 @@ const getToken = (url, callback) => {
             return console.log(err);
         }
         console.log(`Status: ${res.statusCode}`);
-        console.log(body);
+        //console.log(body);
 
         callback(res);
     })
@@ -158,7 +158,7 @@ const getFollowSubscription = (url, callback) => {
                 'broadcaster_user_id': botconfig.TWITCH_BROADCASTER_ID // See https://dev.twitch.tv/docs/api/reference#get-users
             },
             'transport': {
-
+                // Need way to receive notifications
             }
         }
     };
@@ -174,11 +174,19 @@ const getFollowSubscription = (url, callback) => {
     })
 };
 
+
+let cooldown = 3000; // Set a cooldown between commands to prevent bot spam
+let lastCommand = 0; // Tracks last command sent by bot
+
+
 client.on('message', async (channel, userstate, message, self) => {
     if (self) return;
 
     let moderated = moderateTwitchChat(userstate, message, channel);
     if (moderated) return;
+
+    if (cooldown - (Date.now() - lastCommand) > 0) return console.log("Too fast! Command usage on cooldown.");
+    else lastCommand = Date.now();
 
     const greetings = ['Hi! How has your day been?', 'hey, how are you?', 'yo what\'s up', 'heya!', 'hey what\'s up?'];
     const rand_greeting = greetings[Math.floor(Math.random() * greetings.length)];
@@ -598,17 +606,20 @@ client.on('message', async (channel, userstate, message, self) => {
                 console.log(`Status: ${res.statusCode}`);
                 console.log(body);
                 callback(res);
+
             });
         };
         setTimeout(() => {
             getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                if (res.statusCode == 204) return client.say(channel, `Error parsing song.`);
                 var currData = JSON.parse(res.body);
 
                 if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
                 const currSong = currData.item.name;
                 const currArtist = currData.item.artists[0].name;
-                client.say(channel, `@${userstate.username}, current song is ${currSong} by ${currArtist}`);
+                const songLink = currData.item.external_urls.spotify;
+                client.say(channel, `@${userstate.username}, current song is ${currSong} by ${currArtist} -> ${songLink}`);
             })
         }, 1000)
     } else if (comm === '!outro') {
