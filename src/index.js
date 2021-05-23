@@ -128,7 +128,7 @@ const getToken = (url, callback) => {
         if (err) {
             return console.log(err);
         }
-        console.log(`Status: ${res.statusCode}`);
+        console.log(`getToken Status: ${res.statusCode}`);
         //console.log(body);
 
         callback(res);
@@ -168,7 +168,7 @@ const getFollowSubscription = (url, callback) => {
             return console.log(err);
         }
         console.log(`Status: ${res.statusCode}`);
-        console.log(body);
+        //console.log(body);
 
         callback(res);
     })
@@ -185,16 +185,16 @@ client.on('message', async (channel, userstate, message, self) => {
     let moderated = moderateTwitchChat(userstate, message, channel);
     if (moderated) return;
 
+    const args = message.toLowerCase().split(' ');
     // Command wrapper
     if (args[0][0] === '!') {
+        const comm = args[0];
+
         if (cooldown - (Date.now() - lastCommand) > 0) return console.log("Too fast! Command usage on cooldown.");
         else lastCommand = Date.now();
 
         const greetings = ['Hi! How has your day been?', 'hey, how are you?', 'yo what\'s up', 'heya!', 'hey what\'s up?'];
         const rand_greeting = greetings[Math.floor(Math.random() * greetings.length)];
-
-        const args = message.toLowerCase().split(' ');
-        const comm = args[0];
 
         if (comm === '!hello') {
             client.say(channel, `@${userstate.username}, ${rand_greeting}`);
@@ -258,8 +258,8 @@ client.on('message', async (channel, userstate, message, self) => {
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(`Status: ${res.statusCode}`);
-                    console.log(body);
+                    console.log(`getSongURI Status: ${res.statusCode}`);
+                    //console.log(body);
 
                     callback(res);
                 });
@@ -323,8 +323,8 @@ client.on('message', async (channel, userstate, message, self) => {
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(`Status: ${res.statusCode}`);
-                    console.log(body);
+                    console.log(`getCurr Status: ${res.statusCode}`);
+                    //console.log(body);
                     callback(res);
                 });
             };
@@ -356,8 +356,8 @@ client.on('message', async (channel, userstate, message, self) => {
                                 if (err) {
                                     return console.log(err);
                                 }
-                                console.log(`Status: ${res.statusCode}`);
-                                console.log(body);
+                                console.log(`playContext Status: ${res.statusCode}`);
+                                //console.log(body);
 
                             });
                         };
@@ -393,7 +393,7 @@ client.on('message', async (channel, userstate, message, self) => {
                                 if (err) {
                                     return console.log(err);
                                 }
-                                console.log(`Status: ${res.statusCode}`);
+                                console.log(`skipCurr Status: ${res.statusCode}`);
                                 //console.log(body);
 
                             });
@@ -440,7 +440,7 @@ client.on('message', async (channel, userstate, message, self) => {
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(`Status: ${res.statusCode}`);
+                    console.log(`getCurr Status: ${res.statusCode}`);
                     //console.log(body);
                     callback(res);
                 });
@@ -461,8 +461,8 @@ client.on('message', async (channel, userstate, message, self) => {
                         if (err) {
                             return console.log(err);
                         }
-                        console.log(`Status: ${res.statusCode}`);
-                        console.log(body);
+                        console.log(`playPrev Status: ${res.statusCode}`);
+                        //console.log(body);
                         if (res.statusCode != 204) {
                             console.log("Error no previous song.")
                             client.say(channel, `@${userstate.username}, queue history empty and current song is start of playback.`)
@@ -519,8 +519,8 @@ client.on('message', async (channel, userstate, message, self) => {
                                 if (err) {
                                     return console.log(err);
                                 }
-                                console.log(`Status: ${res.statusCode}`);
-                                console.log(body);
+                                console.log(`getCurr Status: ${res.statusCode}`);
+                                //console.log(body);
 
                             });
                         };
@@ -572,8 +572,8 @@ client.on('message', async (channel, userstate, message, self) => {
                                                         if (err) {
                                                             return console.log(err);
                                                         }
-                                                        console.log(`Status: ${res.statusCode}`);
-                                                        console.log(body);
+                                                        console.log(`playContext Status: ${res.statusCode}`);
+                                                        //console.log(body);
 
                                                     });
                                                 };
@@ -605,8 +605,8 @@ client.on('message', async (channel, userstate, message, self) => {
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(`Status: ${res.statusCode}`);
-                    console.log(body);
+                    console.log(`getCurr Status: ${res.statusCode}`);
+                    //console.log(body);
                     callback(res);
 
                 });
@@ -648,8 +648,8 @@ client.on('message', async (channel, userstate, message, self) => {
                     if (err) {
                         return console.log(err);
                     }
-                    console.log(`Status: ${res.statusCode}`);
-                    console.log(body);
+                    console.log(`playOutro Status: ${res.statusCode}`);
+                    //console.log(body);
 
                 });
             };
