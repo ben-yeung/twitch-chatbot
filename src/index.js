@@ -185,10 +185,10 @@ client.on('message', async (channel, userstate, message, self) => {
     let moderated = moderateTwitchChat(userstate, message, channel);
     if (moderated) return;
 
-    const args = message.toLowerCase().split(' ');
+    const args = message.split(' ');
     // Command wrapper
     if (args[0][0] === '!') {
-        const comm = args[0];
+        const comm = args[0].toLowerCase();
 
         if (cooldown - (Date.now() - lastCommand) > 0) return console.log("Too fast! Command usage on cooldown.");
         else lastCommand = Date.now();
@@ -269,44 +269,59 @@ client.on('message', async (channel, userstate, message, self) => {
                 var artistArr = [];
                 var artist = '';
                 var song = '';
-                getSongURI(`https://api.spotify.com/v1/search?q=${args.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
-                    if (JSON.parse(res.body).tracks.items.length == 0) return client.say(channel, `@${userstate.username}, could not find a song with that name`);
-                    let currData = JSON.parse(res.body);
-                    songURI = currData.tracks.items[0].uri;
-                    const artists = currData.tracks.items[0].artists;
+                var byLink = false;
 
-                    for (var i = 0; i < artists.length; i++) {
-                        artistArr.push(artists[i].name);
-                    }
-                    artist = artistArr.join(", ");
-                    song = JSON.parse(res.body).tracks.items[0].name;
-                    console.log(artist)
-                    console.log(song)
+                // Option to queue via spotify share link
+                // If url not given then search with GET request with a query
+                if (args[1].substring(0, 31) === 'https://open.spotify.com/track/') {
+                    songURI = `spotify:track:${args.slice(1).join("").substring(31)}`;
                     console.log(songURI)
-                    const addToQueue = (url, uri) => {
-                        // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
-                        const idOptions = {
-                            url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
-                            json: true,
-                            headers: {
-                                'Authorization': 'Bearer ' + access_token
-                            }
-                        };
-                        request.post(idOptions, (err, res, body) => {
-                            if (err) {
-                                return console.log(err);
-                            }
-                            console.log(`Status: ${res.statusCode}`);
-                            //console.log(body);
+                    byLink = true;
+                } else {
+                    getSongURI(`https://api.spotify.com/v1/search?q=${args.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
+                        if (JSON.parse(res.body).tracks.items.length == 0) return client.say(channel, `@${userstate.username}, could not find a song with that name`);
+                        let currData = JSON.parse(res.body);
+                        songURI = currData.tracks.items[0].uri;
+                        const artists = currData.tracks.items[0].artists;
 
-                        });
+                        for (var i = 0; i < artists.length; i++) {
+                            artistArr.push(artists[i].name);
+                        }
+                        artist = artistArr.join(", ");
+                        song = JSON.parse(res.body).tracks.items[0].name;
+                        console.log(artist)
+                        console.log(song)
+                        console.log(songURI)
+                    })
+                }
+
+                const addToQueue = (url, uri) => {
+                    // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
+                    const idOptions = {
+                        url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
+                        json: true,
+                        headers: {
+                            'Authorization': 'Bearer ' + access_token
+                        }
                     };
-                    setTimeout(() => {
-                        addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI)
+                    request.post(idOptions, (err, res, body) => {
+                        if (err) {
+                            return console.log(err);
+                        }
+                        console.log(`Status: ${res.statusCode}`);
+                        //console.log(body);
+
+                    });
+                };
+                setTimeout(() => {
+                    addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI)
+                    if (byLink) {
+                        client.say(channel, `@${userstate.username}, I've added ${args[1]} to the queue!`)
+                    } else {
                         client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`)
-                        queue.push(songURI)
-                    }, 1000)
-                })
+                    }
+                    queue.push(songURI)
+                }, 1000)
             }, 1000)
         } else if (comm === '!skip') {
             if (!userstate.mod && userstate.username != botconfig.CHANNEL_NAME) return client.say(channel, `@${userstate.username}, sorry you don't have access to this command!`);
