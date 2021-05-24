@@ -259,7 +259,7 @@ client.on('message', async (channel, userstate, message, self) => {
                         return console.log(err);
                     }
                     console.log(`getSongURI Status: ${res.statusCode}`);
-                    console.log(body);
+                    //console.log(body);
                     callback(res);
                 });
             }
@@ -296,7 +296,7 @@ client.on('message', async (channel, userstate, message, self) => {
                     })
                 }
 
-                const addToQueue = (url, uri) => {
+                const addToQueue = (url, uri, callback) => {
                     // see https://developer.spotify.com/documentation/web-api/reference/#endpoint-add-to-queue
                     const idOptions = {
                         url: `${url}?uri=${uri}&device_id=${botconfig.SPOTIFY_DEVICE_ID}`,
@@ -311,22 +311,24 @@ client.on('message', async (channel, userstate, message, self) => {
                         }
                         console.log(`Queue Status: ${res.statusCode}`);
                         //console.log(body);
-                        if (res.statusCode != 400) songFound = true; // Covers queue by link case
+                        callback(res);
 
                     });
                 };
                 setTimeout(() => {
-                    addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI)
-                    if (byLink && songFound) {
-                        client.say(channel, `@${userstate.username}, I've added ${args[1]} to the queue!`)
-                        queue.push(songURI)
-                    } else if (songFound) {
-                        client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`)
-                        queue.push(songURI)
-                    } else {
-                        // Song not found
-                        client.say(channel, `@${userstate.username}, could not find a song with that name/link on Spotify.`)
-                    }
+                    addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI, (res) => {
+                        if (res.statusCode == 204) songFound = true;
+                        if (byLink && songFound) {
+                            client.say(channel, `@${userstate.username}, I've added ${args[1]} to the queue!`)
+                            queue.push(songURI)
+                        } else if (songFound) {
+                            client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`)
+                            queue.push(songURI)
+                        } else {
+                            // Song not found
+                            client.say(channel, `@${userstate.username}, could not find a song with that name/link on Spotify.`)
+                        }
+                    })
                 }, 1000)
             }, 1000)
         } else if (comm === '!skip') {
