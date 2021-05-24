@@ -198,7 +198,7 @@ client.on('message', async (channel, userstate, message, self) => {
 
         if (comm === '!hello') {
             client.say(channel, `@${userstate.username}, ${rand_greeting}`);
-        } else if (comm === '!help') {
+        } else if (comm === '!help' || comm === '!commands') {
             const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song', '!rank'];
             const allComms = arr.join(", ");
             client.say(channel, `Here is a list of active commands: ${allComms}`);
