@@ -325,7 +325,7 @@ client.on('message', async (channel, userstate, message, self) => {
                         queue.push(songURI)
                     } else {
                         // Song not found
-                        client.say(channel, `@${userstate.username}, could not find a song with that name/link`)
+                        client.say(channel, `@${userstate.username}, could not find a song with that name/link on Spotify.`)
                     }
                 }, 1000)
             }, 1000)
