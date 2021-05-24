@@ -32,7 +32,8 @@ client.connect().catch(console.error);
 
 
 // Example from https://github.com/tombaranowicz/SpotifyPlaylistExport/blob/master/index.js
-const scopes = ['user-modify-playback-state', 'user-read-currently-playing', 'user-read-recently-played'];
+// Make sure to update refresh token if scopes change (get new refresh token by visiting redirect url)
+const scopes = ['user-modify-playback-state', 'user-read-currently-playing', 'user-read-recently-played', 'user-read-playback-state'];
 const app = express();
 var access_token;
 var refresh_token;
@@ -70,14 +71,6 @@ app.get('/callback', (req, res) => {
             console.log(
                 `Sucessfully retreived access token. Expires in ${expires_in} s.`
             );
-            // setInterval(async () => {
-            //     const data = await spotifyApi.refreshAccessToken();
-            //     access_token = data.body['access_token'];
-
-            //     console.log('The access token has been refreshed!');
-            //     console.log('access_token:', access_token);
-            //     spotifyApi.setAccessToken(access_token);
-            // }, expires_in / 2 * 1000);
 
         })
         .catch(error => {
@@ -275,8 +268,8 @@ client.on('message', async (channel, userstate, message, self) => {
                 // If url not given then search with GET request with a query
                 if (args[1].substring(0, 31) === 'https://open.spotify.com/track/') {
                     songURI = `spotify:track:${args.slice(1).join("").substring(31)}`;
-                    console.log(songURI)
                     byLink = true;
+
                 } else {
                     getSongURI(`https://api.spotify.com/v1/search?q=${args.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
                         if (res.statusCode == 400 || JSON.parse(res.body).tracks.items.length == 0) return;
@@ -290,9 +283,6 @@ client.on('message', async (channel, userstate, message, self) => {
                         }
                         artist = artistArr.join(", ");
                         song = JSON.parse(res.body).tracks.items[0].name;
-                        console.log(artist)
-                        console.log(song)
-                        console.log(songURI)
                     })
                 }
 
@@ -319,14 +309,14 @@ client.on('message', async (channel, userstate, message, self) => {
                     addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI, (res) => {
                         if (res.statusCode == 204) songFound = true;
                         if (byLink && songFound) {
-                            client.say(channel, `@${userstate.username}, I've added ${args[1]} to the queue!`)
-                            queue.push(songURI)
+                            client.say(channel, `@${userstate.username}, I've added ${args[1]} to the queue!`);
+                            queue.push(songURI);
                         } else if (songFound) {
-                            client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`)
-                            queue.push(songURI)
+                            client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`);
+                            queue.push(songURI);
                         } else {
                             // Song not found
-                            client.say(channel, `@${userstate.username}, could not find a song with that name/link on Spotify.`)
+                            client.say(channel, `@${userstate.username}, could not find a song with that name/link on Spotify.`);
                         }
                     })
                 }, 1000)
@@ -706,8 +696,6 @@ client.on('message', async (channel, userstate, message, self) => {
                     client.say(channel, `@${userstate.username}, ${res.body}`);
                 })
             })
-        } else if (comm === '!songuri') {
-
         }
 
     }
