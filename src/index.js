@@ -158,7 +158,7 @@ const getFollowSubscription = (url, callback) => {
                 'broadcaster_user_id': botconfig.TWITCH_BROADCASTER_ID // See https://dev.twitch.tv/docs/api/reference#get-users
             },
             'transport': {
-                // Need way to receive notifications
+                // Need way to receive notifications via HTTPS
             }
         }
     };
@@ -196,7 +196,7 @@ client.on('message', async (channel, userstate, message, self) => {
         const greetings = ['Hi! How has your day been?', 'hey, how are you?', 'yo what\'s up', 'heya!', 'hey what\'s up?'];
         const rand_greeting = greetings[Math.floor(Math.random() * greetings.length)];
 
-        if (comm === '!hello') {
+        if (comm === '!hello' || comm === '!hi' || comm === '!hey') {
             client.say(channel, `@${userstate.username}, ${rand_greeting}`);
         } else if (comm === '!help' || comm === '!commands') {
             const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song', '!rank'];
