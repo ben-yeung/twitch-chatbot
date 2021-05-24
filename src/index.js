@@ -167,10 +167,34 @@ const getFollowSubscription = (url, callback) => {
     })
 };
 
+// Example for fetching current playback information
+// const getPlayback = (url, callback) => {
+//     // see https://developer.spotify.com/console/get-user-player/
+
+//     const songOptions = {
+//         url: url,
+//         method: "GET",
+//         headers: {
+//             'Authorization': 'Bearer ' + access_token
+//         }
+//     };
+//     request.get(songOptions, (err, res, body) => {
+//         if (err) {
+//             return console.log(err);
+//         }
+//         console.log(`getPlayback Status: ${res.statusCode}`);
+//         callback(res);
+//     });
+// }
+// setTimeout(() => {
+//     getPlayback(botconfig.SPOTIFY_PLAYER_LINK, (res) => {
+//         if (res.statusCode != 200) return console.log(`Something went wrong fetching playback:\n ${res.body}`);
+//         console.log(JSON.parse(res.body));
+//     })
+// }, 1000)
 
 const cooldown = 3000; // Set a cooldown between commands to prevent bot spam
 var lastCommand = 0; // Tracks last command sent by bot
-
 
 client.on('message', async (channel, userstate, message, self) => {
     if (self) return;
