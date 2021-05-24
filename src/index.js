@@ -259,7 +259,7 @@ client.on('message', async (channel, userstate, message, self) => {
                         return console.log(err);
                     }
                     console.log(`getSongURI Status: ${res.statusCode}`);
-                    //console.log(body);
+                    console.log(body);
 
                     callback(res);
                 });
@@ -271,8 +271,9 @@ client.on('message', async (channel, userstate, message, self) => {
                 var song = '';
                 getSongURI(`https://api.spotify.com/v1/search?q=${args.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
                     if (JSON.parse(res.body).tracks.items.length == 0) return client.say(channel, `@${userstate.username}, could not find a song with that name`);
-                    songURI = JSON.parse(res.body).tracks.items[0].uri;
-                    const artists = JSON.parse(res.body).tracks.items[0].artists;
+                    let currData = JSON.parse(res.body);
+                    songURI = currData.tracks.items[0].uri;
+                    const artists = currData.tracks.items[0].artists;
 
                     for (var i = 0; i < artists.length; i++) {
                         artistArr.push(artists[i].name);
@@ -682,6 +683,8 @@ client.on('message', async (channel, userstate, message, self) => {
                     client.say(channel, `@${userstate.username}, ${res.body}`);
                 })
             })
+        } else if (comm === '!songuri') {
+
         }
 
     }
