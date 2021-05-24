@@ -210,7 +210,7 @@ client.on('message', async (channel, userstate, message, self) => {
                 client.say(channel, `@${userstate.username} flips a coin and it's Tails!`)
             }
         } else if (comm === '!queue' || comm === '!request' || comm === '!sr') {
-            if (!args[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name with this command!`)
+            if (!args[1]) return client.say(channel, `@${userstate.username} you must specify a Spotify song name or share link with this command!`)
 
             // THIS IS CLIENT CREDENTIALS FLOW FOR SPOTIFY (SUITABLE FOR BASIC INFO REQUESTS / NO USER AUTH)
             // SEE https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
@@ -260,7 +260,6 @@ client.on('message', async (channel, userstate, message, self) => {
                     }
                     console.log(`getSongURI Status: ${res.statusCode}`);
                     console.log(body);
-
                     callback(res);
                 });
             }
@@ -270,6 +269,7 @@ client.on('message', async (channel, userstate, message, self) => {
                 var artist = '';
                 var song = '';
                 var byLink = false;
+                var songFound = false;
 
                 // Option to queue via spotify share link
                 // If url not given then search with GET request with a query
@@ -279,7 +279,8 @@ client.on('message', async (channel, userstate, message, self) => {
                     byLink = true;
                 } else {
                     getSongURI(`https://api.spotify.com/v1/search?q=${args.slice(1).join("%20")}&type=track&limit=1&offset=0`, (res) => {
-                        if (JSON.parse(res.body).tracks.items.length == 0) return client.say(channel, `@${userstate.username}, could not find a song with that name`);
+                        if (res.statusCode == 400 || JSON.parse(res.body).tracks.items.length == 0) return;
+                        songFound = true; // Song query found song case
                         let currData = JSON.parse(res.body);
                         songURI = currData.tracks.items[0].uri;
                         const artists = currData.tracks.items[0].artists;
@@ -308,19 +309,24 @@ client.on('message', async (channel, userstate, message, self) => {
                         if (err) {
                             return console.log(err);
                         }
-                        console.log(`Status: ${res.statusCode}`);
+                        console.log(`Queue Status: ${res.statusCode}`);
                         //console.log(body);
+                        if (res.statusCode != 400) songFound = true; // Covers queue by link case
 
                     });
                 };
                 setTimeout(() => {
                     addToQueue(botconfig.SPOTIFY_QUEUE_LINK, songURI)
-                    if (byLink) {
+                    if (byLink && songFound) {
                         client.say(channel, `@${userstate.username}, I've added ${args[1]} to the queue!`)
-                    } else {
+                        queue.push(songURI)
+                    } else if (songFound) {
                         client.say(channel, `@${userstate.username}, I've added ${song} by ${artist} to the queue!`)
+                        queue.push(songURI)
+                    } else {
+                        // Song not found
+                        client.say(channel, `@${userstate.username}, could not find a song with that name/link`)
                     }
-                    queue.push(songURI)
                 }, 1000)
             }, 1000)
         } else if (comm === '!skip') {
