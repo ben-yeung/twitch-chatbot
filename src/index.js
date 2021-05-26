@@ -370,7 +370,7 @@ client.on('message', async (channel, userstate, message, self) => {
                 getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
                     var currData = JSON.parse(res.body);
                     // console.log(currData)
-
+                    if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
                     // If current song's context is null skip to last context or default context uri
                     if (currData.context === null) {
 
@@ -441,6 +441,7 @@ client.on('message', async (channel, userstate, message, self) => {
                             setTimeout(() => {
                                 getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
                                     currData = JSON.parse(res.body);
+                                    if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
                                     var artistArr = [];
                                     var song = '';
                                     var artists = currData.item.artists;
