@@ -697,6 +697,9 @@ client.on('message', async (channel, userstate, message, self) => {
                 // Customize this outro message
                 client.say(channel, `Thanks for coming out to the stream! Hope to see you again soon! Follows are appreciated as we are on the road to affiliate!`)
             }, 1000)
+        } else if (comm === '!spotify') {
+            // Returns chat message with streamer's spotify link
+            client.say(channel, `@${userstate.username}, ${botconfig.PERSONAL_SPOTIFY_LINK}`);
         } else if (comm === '!rank') {
             // Gets Rocket League ranked data
             const getRank = (url, callback) => {
