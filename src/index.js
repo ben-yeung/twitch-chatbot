@@ -725,7 +725,12 @@ client.on('message', async (channel, userstate, message, self) => {
 
                     if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
 
-                    client.say(channel, `@${userstate.username}, current playlist is ${playlist}`);
+                    if (currData.context === null) {
+                        client.say(channel, `@${userstate.username}, current playback is not a part of a playlist.`);
+                    } else {
+                        let playlist = currData.context.external_urls.spotify;
+                        client.say(channel, `@${userstate.username}, current playlist is ${playlist}`);
+                    }
                 })
             }, 1000)
         } else if (comm === '!spotify') {
