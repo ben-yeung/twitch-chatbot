@@ -216,7 +216,7 @@ client.on('message', async (channel, userstate, message, self) => {
         if (comm === '!hello' || comm === '!hi' || comm === '!hey') {
             client.say(channel, `@${userstate.username}, ${rand_greeting}`);
         } else if (comm === '!help' || comm === '!commands') {
-            const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!queue', '!request', '!song', '!rank'];
+            const arr = ['!hello', '!settings', '!creationmeta', '!coinflip', '!rank', '!queue', '!request', '!song', '!playlist', '!spotify'];
             const allComms = arr.join(", ");
             client.say(channel, `Here is a list of active commands: ${allComms}`);
         } else if (comm === '!flip' || comm === '!coinflip' || comm === '!flipcoin') {
@@ -696,6 +696,37 @@ client.on('message', async (channel, userstate, message, self) => {
                 playOutro(botconfig.SPOTIFY_PLAY_LINK);
                 // Customize this outro message
                 client.say(channel, `Thanks for coming out to the stream! Hope to see you again soon! Follows are appreciated as we are on the road to affiliate!`)
+            }, 1000)
+        } else if (comm === '!playlist') {
+            // Returns current playlist if possible
+            const getCurr = (url, callback) => {
+                // see https://developer.spotify.com/console/get-user-player/
+                const songOptions = {
+                    url: `${url}`,
+                    method: "GET",
+                    headers: {
+                        'Authorization': 'Bearer ' + access_token
+                    }
+                };
+                request.get(songOptions, (err, res, body) => {
+                    if (err) {
+                        return console.log(err);
+                    }
+                    console.log(`getCurr Status: ${res.statusCode}`);
+                    //console.log(body);
+                    callback(res);
+
+                });
+            };
+            setTimeout(() => {
+                getCurr(botconfig.SPOTIFY_CURR_LINK, (res) => {
+                    if (res.statusCode == 204) return client.say(channel, `Error parsing song.`);
+                    var currData = JSON.parse(res.body);
+
+                    if (currData.item === undefined || currData.is_playing == false) return client.say(channel, `@${userstate.username}, no song currently playing.`);
+
+                    client.say(channel, `@${userstate.username}, current playlist is ${playlist}`);
+                })
             }, 1000)
         } else if (comm === '!spotify') {
             // Returns chat message with streamer's spotify link
