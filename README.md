@@ -14,7 +14,7 @@
     - This file also includes an array of blacklisted words (be sure to make your own for moderating)
     - Feel free to also use a .env file and change the respective botconfig references
 
-##  Spotify Web API Integration
+##  🎧 Spotify Web API Integration
 - Using Authorization Code Flow with various scopes to make GET and POST requests
 - Twitch chat commands to modify playback (moderator permission options)
     - Command to grab song currently playing in real time
