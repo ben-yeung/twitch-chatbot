@@ -5,7 +5,7 @@
   [![tmi.js](https://img.shields.io/badge/tmi.js-v1.8.0-blueviolet?style=for-the-badge)](https://github.com/tmijs/tmi.js)
   
 
-  [![npm](https://img.shields.io/badge/npm-v7.15.1-red?style=for-the-badge&logo=npm)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+[![npm](https://img.shields.io/badge/npm-v7.15.1-red?style=for-the-badge&logo=npm)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
   [![Node.js](https://img.shields.io/badge/Node.js-v16.3.0-brightgreen?style=for-the-badge&logo=Nodejs)](https://dev.twitch.tv/docs/)
 
 ## Simple chat bot to interact with users in Twitch chat and provide moderation
