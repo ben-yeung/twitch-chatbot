@@ -1,6 +1,12 @@
 #  twitch-chatbot 🤖
-Simple chat bot to interact with users in Twitch chat and provide moderation
-- [Node.js](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) for compilation and package managing
+
+   [![Spotify API](https://img.shields.io/badge/Spotify%20API-Doc-brightgreen?style=for-the-badge&logo=spotify)](https://developer.spotify.com/documentation/web-api/quick-start/)
+   [![Twitch API](https://img.shields.io/badge/Twitch%20API-Doc-blueviolet?style=for-the-badge&logo=twitch)](https://dev.twitch.tv/docs/)
+   [![npm](https://img.shields.io/badge/npm-v7.15.1-red?style=for-the-badge&logo=npm)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+   [![Node.js](https://img.shields.io/badge/Node.js-v16.3.0-brightgreen?style=for-the-badge&logo=nodejs)](https://dev.twitch.tv/docs/)
+   [![tmi.js](https://img.shields.io/badge/tmi.js-v1.8.0-blueviolet?style=for-the-badge&logo=tmijs)](https://github.com/tmijs/tmi.js)
+
+## Simple chat bot to interact with users in Twitch chat and provide moderation
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
 - Simple starter greeting command, flip coin command, and some relevant streamer information
 - Some moderation features include automatic message deletion based on blacklist of words
@@ -8,7 +14,7 @@ Simple chat bot to interact with users in Twitch chat and provide moderation
     - This file also includes an array of blacklisted words (be sure to make your own for moderating)
     - Feel free to also use a .env file and change the respective botconfig references
 
-##  Spotify Web API Integration | [package](https://www.npmjs.com/package/spotify-web-api-node) 🎵
+##  Spotify Web API Integration
 - Using Authorization Code Flow with various scopes to make GET and POST requests
 - Twitch chat commands to modify playback (moderator permission options)
     - Command to grab song currently playing in real time
@@ -21,7 +27,7 @@ Simple chat bot to interact with users in Twitch chat and provide moderation
     - Be sure to update or include the relevant url calls accordingly
 - Once a refresh token has been generated, schedule access token refreshes with cron
 
-##  Debugging 🔎
+##  🔎 Debugging 
 **To get started with initializing a Twitch Chat Bot see:**
 - [Quickstart Overview](https://dev.twitch.tv/docs/irc)
     - *Basic setup and starter code for a Twitch Chat Bot*
@@ -39,7 +45,7 @@ Simple chat bot to interact with users in Twitch chat and provide moderation
     - *I highly recommend this reference as there are browser API previews for GET/POST requests and request structure*
 - Most of the calls have their relative Spotify API Doc links above them
 
-## Dependencies 🛠️
+## 🛠️ Dependencies 
 - [request](https://www.npmjs.com/package/request)
 - [express](https://www.npmjs.com/package/express)
 - [spotify-web-api-node](https://www.npmjs.com/package/spotify-web-api-node)
