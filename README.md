@@ -1,4 +1,4 @@
-#  twitch-chatbot 🤖
+#  twitch-chatbot 
 
 [![Spotify API](https://img.shields.io/badge/Spotify%20API-Doc-brightgreen?style=for-the-badge&logo=spotify)](https://developer.spotify.com/documentation/web-api/quick-start/)
   [![Twitch API](https://img.shields.io/badge/Twitch%20API-Doc-blueviolet?style=for-the-badge&logo=twitch)](https://dev.twitch.tv/docs/)
@@ -8,7 +8,7 @@
 [![npm](https://img.shields.io/badge/npm-v7.15.1-red?style=for-the-badge&logo=npm)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
   [![Node.js](https://img.shields.io/badge/Node.js-v16.3.0-brightgreen?style=for-the-badge&logo=Nodejs)](https://dev.twitch.tv/docs/)
 
-## Simple chat bot to interact with users in Twitch chat and provide moderation
+## 🤖 Simple chat bot to interact with users in Twitch chat and provide moderation
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
 - Simple starter greeting command, flip coin command, and some relevant streamer information
 - Some moderation features include automatic message deletion based on blacklist of words
