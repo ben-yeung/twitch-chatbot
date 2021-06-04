@@ -3,8 +3,8 @@
 [![Spotify API](https://img.shields.io/badge/Spotify%20API-Doc-brightgreen?style=for-the-badge&logo=spotify)](https://developer.spotify.com/documentation/web-api/quick-start/)
    [![Twitch API](https://img.shields.io/badge/Twitch%20API-Doc-blueviolet?style=for-the-badge&logo=twitch)](https://dev.twitch.tv/docs/)
    [![npm](https://img.shields.io/badge/npm-v7.15.1-red?style=for-the-badge&logo=npm)](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-   [![Node.js](https://img.shields.io/badge/Node.js-v16.3.0-brightgreen?style=for-the-badge&logo=node.js)](https://dev.twitch.tv/docs/)
-   [![tmi.js](https://img.shields.io/badge/tmi.js-v1.8.0-blueviolet?style=for-the-badge&logo=tmi.js)](https://github.com/tmijs/tmi.js)
+   [![Node.js](https://img.shields.io/badge/Node.js-v16.3.0-brightgreen?style=for-the-badge&logo=node)](https://dev.twitch.tv/docs/)
+   [![tmi.js](https://img.shields.io/badge/tmi.js-v1.8.0-blueviolet?style=for-the-badge&logo=tmi)](https://github.com/tmijs/tmi.js)
 
 ## Simple chat bot to interact with users in Twitch chat and provide moderation
 - Uses [tmi.js](https://github.com/tmijs/tmi.js) for Twitch integration
